@@ -1,15 +1,10 @@
 from rest_framework import generics
-from .models import ClassRoom
+from .models import (ClassRoom, Exam, Mark, TeacherSubjectClass, Teacher, Student, Subject)
 
 from .serializers import (ClassRoomSerializer, 
                           SubjectSerializer, StudentSerializer, 
                           TeacherSerializer, TeacherSubjectClassSerializer, 
-                          ExamSerializer)    
-from .models import Exam
-from .models import TeacherSubjectClass
-from .models import Teacher
-from .models import Student
-from .models import Subject
+                          ExamSerializer, MarkSerializer)    
 
 
 # Classroom views
@@ -68,3 +63,8 @@ class ExamListCreateView(generics.ListCreateAPIView):
 class ExamDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
+
+# Mark
+class MarkListCreateView(generics.ListCreateAPIView):
+    queryset = Mark.objects.all()
+    serializer_class = MarkSerializer

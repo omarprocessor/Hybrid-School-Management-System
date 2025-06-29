@@ -20,6 +20,8 @@ urlpatterns = [
     # Exam
     path('exams/', views.ExamListCreateView.as_view(), name='exam-list'),
     path('exams/<int:pk>/', views.ExamDetailView.as_view(), name='exam-detail'),
+    # Mark
+    path('marks/', views.MarkListCreateView.as_view(), name='mark-list'),
 
 
 

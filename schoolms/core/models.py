@@ -47,3 +47,37 @@ class Exam(models.Model):
 
     def __str__(self):
          return f"{self.name}"
+    
+class Mark(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+   
+    cat1 = models.PositiveSmallIntegerField(default=0)
+    cat2 = models.PositiveSmallIntegerField(default=0)
+    exam_score = models.PositiveSmallIntegerField(default=0)
+    total = models.PositiveSmallIntegerField(blank=True, null=True)
+    grade = models.CharField(max_length=2, blank=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True)
+
+    def save(self, *args, **kwargs):
+        self.total = self.cat1 + self.cat2 + self.exam_score
+        self.grade = self.get_grade()
+        super().save(*args, **kwargs)
+
+    def get_grade(self):
+        if self.total >= 80:
+             return 'A'
+        elif self.total >= 70:
+             return 'B+'
+        elif self.total >= 60:
+             return 'B'
+        elif self.total >= 50:
+             return 'C'
+        elif self.total >= 40:
+             return 'D'
+        else:
+             return 'E'
+
+        def __str__(self):
+             return f"{self.student} - {self.subject} - {self.exam}"
