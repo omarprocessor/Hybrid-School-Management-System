@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import ClassRoom, Subject, Student, Teacher
+from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass
 
 class ClassRoomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,4 +30,13 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
+        fields = '__all__'
+
+class TeacherSubjectClassSerializer(serializers.ModelSerializer):
+    teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+    classroom = serializers.PrimaryKeyRelatedField(queryset=ClassRoom.objects.all())
+
+    class Meta:
+        model = TeacherSubjectClass
         fields = '__all__'

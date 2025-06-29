@@ -30,3 +30,12 @@ class Teacher(models.Model):
 
     def __str__(self):
          return self.full_name
+
+class TeacherSubjectClass(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    classroom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+
+    def __str__(self):
+         return f"{self.teacher} - {self.subject} - {self.classroom}"
+
