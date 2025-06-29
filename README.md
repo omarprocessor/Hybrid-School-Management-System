@@ -4,21 +4,6 @@ A full-featured school management platform with both **public-facing pages** and
 
 ---
 
-## 📌 Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Biometric Integration](#biometric-integration)
-- [SMS Notifications](#sms-notifications)
-- [User Roles](#user-roles)
-- [Screenshots](#screenshots)
-- [Project Structure](#project-structure)
-- [Future Enhancements](#future-enhancements)
-- [License](#license)
-
----
-
 ## ✨ Features
 
 - Public pages: Home, About Us, Contact, Blog/Posts
@@ -48,8 +33,8 @@ A full-featured school management platform with both **public-facing pages** and
 - JWT Authentication (SimpleJWT)
 
 **Hardware & Integration:**
-- ZKTeco / UART-based fingerprint module
-- Serial communication or SDK integration
+- UART-based fingerprint module
+- Serial communication
 
 **Third-party Services:**
 - Africastalking / Twilio (for SMS)
