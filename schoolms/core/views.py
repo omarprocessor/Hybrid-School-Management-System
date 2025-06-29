@@ -63,4 +63,8 @@ class TeacherSubjectClassDetailView(generics.RetrieveUpdateDestroyAPIView):
 # Exam
 class ExamListCreateView(generics.ListCreateAPIView):
     queryset = Exam.objects.all()
+    serializer_class = ExamSerializer\
+    
+class ExamDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Exam.objects.all()
     serializer_class = ExamSerializer
