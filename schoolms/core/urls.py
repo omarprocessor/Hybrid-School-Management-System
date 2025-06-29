@@ -5,8 +5,11 @@ urlpatterns = [
     # ClassRoom
     path('classrooms/', views.ClassRoomListCreateView.as_view(), name='classroom-list'),
     path('classrooms/<int:id>/', views.ClassRoomDetailView.as_view(), name='classroom-detail'),
+    #Subject
     path('subjects/', views.SubjectListCreateView.as_view(), name='subject-list'),
     path('subjects/<int:pk>/', views.SubjectDetailView.as_view(), name='subject-detail'),
+    # Student
+    path('students/', views.StudentListCreateView.as_view(), name='student-list'),
 
    
 ]

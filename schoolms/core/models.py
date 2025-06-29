@@ -14,3 +14,12 @@ class Subject(models.Model):
 
     def __str__(self):
          return self.name
+
+class Student(models.Model):
+    admission_no = models.CharField(max_length=20, unique=True)
+    full_name = models.CharField(max_length=100)
+    gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
+    classroom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+
+    def __str__(self):
+         return self.full_name
