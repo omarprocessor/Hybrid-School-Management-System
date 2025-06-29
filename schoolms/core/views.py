@@ -68,3 +68,7 @@ class ExamDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MarkListCreateView(generics.ListCreateAPIView):
     queryset = Mark.objects.all()
     serializer_class = MarkSerializer
+
+class MarkDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Mark.objects.all()
+    serializer_class = MarkSerializer
