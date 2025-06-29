@@ -4,6 +4,7 @@ from .models import ClassRoom
 from .serializers import ClassRoomSerializer, SubjectSerializer
 from .models import Subject
 
+
 # Classroom views
 # This view handles both listing all classrooms and creating a new classroom.
 class ClassRoomListCreateView(generics.ListCreateAPIView):
@@ -16,3 +17,8 @@ class ClassRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassRoomSerializer
     lookup_field = 'id'  # Use 'id' as the lookup field for retrieving specific classrooms
 
+
+#subject views
+class SubjectListCreateView(generics.ListCreateAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
