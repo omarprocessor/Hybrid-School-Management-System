@@ -38,4 +38,12 @@ class TeacherSubjectClass(models.Model):
 
     def __str__(self):
          return f"{self.teacher} - {self.subject} - {self.classroom}"
+         
+class Exam(models.Model):
+    name = models.CharField(max_length=50)
+    term = models.CharField(max_length=10)
+    year = models.IntegerField()
+    start_date = models.DateField()
 
+    def __str__(self):
+         return f"{self.name}"

@@ -17,6 +17,8 @@ urlpatterns = [
     # TeacherSubjectClass
     path('assignments/', views.TeacherSubjectClassListCreateView.as_view(), name='assignment-list'),
     path('assignments/<int:pk>/', views.TeacherSubjectClassDetailView.as_view(), name='assignment-detail'),
+    # Exam
+    path('exams/', views.ExamListCreateView.as_view(), name='exam-list'),
 
 
 

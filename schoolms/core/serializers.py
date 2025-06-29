@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass
+from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam
 
 class ClassRoomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,4 +39,9 @@ class TeacherSubjectClassSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeacherSubjectClass
+        fields = '__all__'
+
+class ExamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exam
         fields = '__all__'
