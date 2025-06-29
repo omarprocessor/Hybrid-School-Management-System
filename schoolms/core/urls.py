@@ -13,6 +13,8 @@ urlpatterns = [
     path('students/<int:pk>/', views.StudentDetailView.as_view(), name='student-detail'),
     # Teacher
     path('teachers/', views.TeacherListCreateView.as_view(), name='teacher-list'),
+    path('teachers/<int:pk>/', views.TeacherDetailView.as_view(), name='teacher-detail'),
+
 
 
    
