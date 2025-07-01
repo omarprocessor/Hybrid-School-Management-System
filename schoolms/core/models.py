@@ -82,3 +82,14 @@ class Mark(models.Model):
 
         def __str__(self):
              return f"{self.student} - {self.subject} - {self.exam}"
+
+
+class Attendance(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    classroom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    time_in = models.TimeField()
+    time_out = models.TimeField(blank=True, null=True)
+
+    def __str__(self):
+         return f"{self.student.admission_no} - {self.student.full_name} - {self.date}"
