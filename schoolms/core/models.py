@@ -20,6 +20,7 @@ class Student(models.Model):
     full_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
     classroom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
+    parent_phone = models.CharField(max_length=15, blank=True, null=True) 
 
     def __str__(self):
          return self.full_name
