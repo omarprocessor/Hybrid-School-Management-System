@@ -122,3 +122,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Africa's Talking settings
+AFRICASTALKING_USERNAME = ''
+AFRICASTALKING_API_KEY = ''
+
+TIME_ZONE = 'Africa/Nairobi'
+USE_TZ = True  
