@@ -24,6 +24,9 @@ urlpatterns = [
     path('marks/', views.MarkListCreateView.as_view(), name='mark-list'),
     path('marks/<int:pk>/', views.MarkDetailView.as_view(), name='mark-detail'),
 
+     # Attendance
+    path('attendance/', views.AttendanceCreateView.as_view(), name='attendance-create'),
+
 
 
 
