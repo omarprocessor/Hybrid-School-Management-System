@@ -26,10 +26,11 @@ urlpatterns = [
 
      # Attendance
     path('attendance/', views.AttendanceCreateView.as_view(), name='attendance-create'),
+    path('attendance/list/', views.AttendanceListView.as_view(), name='attendance-list'),
+]
 
 
 
 
 
    
-]

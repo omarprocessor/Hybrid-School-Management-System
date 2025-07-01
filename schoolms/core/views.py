@@ -79,3 +79,7 @@ class MarkDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AttendanceCreateView(generics.CreateAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
+
+class AttendanceListView(generics.ListAPIView):
+    queryset = Attendance.objects.all().order_by('-date', '-time_in')
+    serializer_class = AttendanceSerializer
