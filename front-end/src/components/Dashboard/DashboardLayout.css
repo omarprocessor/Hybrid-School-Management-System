@@ -1,0 +1,40 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background-color: #3F51B5;
+  padding: 30px 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 8px 0;
+  transition: background 0.3s;
+}
+
+.sidebar a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding-left: 5px;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 40px;
+  background-color: #F5F7FA;
+}
