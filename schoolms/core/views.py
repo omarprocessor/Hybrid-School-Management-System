@@ -7,6 +7,9 @@ from .serializers import (ClassRoomSerializer,
                           TeacherSerializer, TeacherSubjectClassSerializer, 
                           ExamSerializer, MarkSerializer)    
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 # Classroom views
 # This view handles both listing all classrooms and creating a new classroom.
@@ -83,3 +86,15 @@ class AttendanceCreateView(generics.CreateAPIView):
 class AttendanceListView(generics.ListAPIView):
     queryset = Attendance.objects.all().order_by('-date', '-time_in')
     serializer_class = AttendanceSerializer
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['is_superuser'] = user.is_superuser
+        token['username'] = user.username
+        return token
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
