@@ -40,6 +40,7 @@ urlpatterns = [
     path('my-marks/', views.MyStudentMarksView.as_view(), name='my-marks'),
     path('my-attendance/', views.MyStudentAttendanceView.as_view(), name='my-attendance'),
     path('users/', views.UserListView.as_view(), name='user-list'),
+    path('my-class-attendance/', views.MyClassAttendanceView.as_view(), name='my-class-attendance'),
 ]
 
 

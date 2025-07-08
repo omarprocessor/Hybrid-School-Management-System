@@ -162,6 +162,19 @@ class MyStudentAttendanceView(APIView):
         serializer = AttendanceSerializer(attendance, many=True)
         return Response(serializer.data)
 
+class MyClassAttendanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+            classroom = ClassRoom.objects.get(class_teacher=teacher)
+        except (Teacher.DoesNotExist, ClassRoom.DoesNotExist):
+            return Response({'detail': 'No class assigned as class teacher.'}, status=404)
+        attendance = Attendance.objects.filter(classroom=classroom).order_by('-date', '-time_in')
+        serializer = AttendanceSerializer(attendance, many=True)
+        return Response(serializer.data)
+
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer

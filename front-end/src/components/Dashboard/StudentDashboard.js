@@ -3,52 +3,52 @@ import './StudentDashboard.css'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../AuthContext'
 
+const API = process.env.REACT_APP_API_BASE_URL;
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [student, setStudent] = useState(null)
+  const [profile, setProfile] = useState(null);
+  const [classrooms, setClassrooms] = useState([]);
   const [marks, setMarks] = useState([])
   const [attendance, setAttendance] = useState([])
   const [subjects, setSubjects] = useState([])
   const [exams, setExams] = useState([])
   const [error, setError] = useState('')
 
-  useEffect(() => {
+useEffect(() => {
     const token = localStorage.getItem('access');
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/my-student/`, {
+    fetch(`${API}/my-student/`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-      .then(res => {
-        if (!res.ok) throw new Error('No student record found for this user.');
-        return res.json();
-      })
-      .then(data => setStudent(data))
-      .catch(err => setError(err.message))
-  }, [])
-
-  useEffect(() => {
-    const token = localStorage.getItem('access');
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/my-marks/`, {
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setProfile(data))
+      .catch(() => setError('Failed to fetch profile'));
+    fetch(`${API}/my-marks/`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])
       .then(data => setMarks(data))
       .catch(() => setMarks([]))
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/my-attendance/`, {
+    fetch(`${API}/my-attendance/`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])
       .then(data => setAttendance(data))
       .catch(() => setAttendance([]))
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/subjects/`)
+    fetch(`${API}/subjects/`)
       .then(res => res.ok ? res.json() : [])
       .then(data => setSubjects(data))
       .catch(() => setSubjects([]))
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/exams/`)
+    fetch(`${API}/exams/`)
       .then(res => res.ok ? res.json() : [])
       .then(data => setExams(data))
       .catch(() => setExams([]))
-  }, [])
+    fetch(`${API}/classrooms/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setClassrooms(data))
+      .catch(() => setClassrooms([]));
+  }, []);
 
   const getSubjectName = id => {
     const subj = subjects.find(s => s.id === id)
@@ -58,6 +58,10 @@ const StudentDashboard = () => {
     const exam = exams.find(e => e.id === id)
     return exam ? `${exam.name} (Term ${exam.term} ${exam.year})` : id
   }
+  const getClassName = id => {
+    const cls = classrooms.find(c => c.id === id);
+    return cls ? cls.name : id;
+  };
 
   const handleLogout = () => {
     logout();
@@ -65,9 +69,9 @@ const StudentDashboard = () => {
   }
 
   if (error) return <div className="student-dashboard-error">{error}</div>
-  if (!student) return <div className="student-dashboard-loading">Loading...</div>
+  if (!profile) return <div className="student-dashboard-loading">Loading...</div>
 
-  return (
+return (
     <div className="student-dashboard-container">
       <button className="student-logout-btn" onClick={handleLogout}>Logout</button>
       <h1 className="student-dashboard-title">👨‍🎓 Student Dashboard</h1>
@@ -75,10 +79,10 @@ const StudentDashboard = () => {
         <h2>Profile</h2>
         <table className="student-profile-table">
           <tbody>
-            <tr><th>Full Name</th><td>{student.full_name}</td></tr>
-            <tr><th>Admission No</th><td>{student.admission_no}</td></tr>
-            <tr><th>Class</th><td>{student.classroom}</td></tr>
-            <tr><th>Parent Phone</th><td>{student.parent_phone}</td></tr>
+            <tr><th>Full Name</th><td>{profile.full_name}</td></tr>
+            <tr><th>Admission No</th><td>{profile.admission_no}</td></tr>
+            <tr><th>Class</th><td>{getClassName(profile.classroom)}</td></tr>
+            <tr><th>Parent Phone</th><td>{profile.parent_phone}</td></tr>
           </tbody>
         </table>
       </section>
@@ -116,15 +120,15 @@ const StudentDashboard = () => {
       <section className="student-attendance-section">
         <h2>Attendance</h2>
         <table className="student-attendance-table">
-          <thead>
-            <tr>
+    <thead>
+      <tr>
               <th>Date</th>
               <th>Time In</th>
               <th>Time Out</th>
               <th>Classroom</th>
-            </tr>
-          </thead>
-          <tbody>
+      </tr>
+    </thead>
+    <tbody>
             {attendance.length === 0 ? (
               <tr><td colSpan="4">No attendance records found.</td></tr>
             ) : attendance.map((att, i) => (
@@ -133,13 +137,13 @@ const StudentDashboard = () => {
                 <td>{att.time_in}</td>
                 <td>{att.time_out}</td>
                 <td>{att.classroom}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        </tr>
+      ))}
+    </tbody>
+  </table>
       </section>
     </div>
-  )
+)
 }
 
 export default StudentDashboard

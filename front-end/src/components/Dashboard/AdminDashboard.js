@@ -42,15 +42,15 @@ const AdminDashboard = () => {
         <button onClick={handleLogout} style={{ marginTop: 'auto', background: '#fff', color: '#3F51B5', width: '100%' }}>Logout</button>
       </aside>
       <main className="admin-main-content">
-        <h1>Admin Dashboard</h1>
+    <h1>Admin Dashboard</h1>
         {section === 'students' && <AdminStudents />}
         {section === 'teachers' && <AdminTeachers />}
         {section === 'classes' && <AdminClasses />}
         {section === 'approvals' && <AdminUserApprovals />}
         {/* Render other management components here */}
       </main>
-    </div>
-  );
+  </div>
+);
 };
 
 export default AdminDashboard; 

@@ -13,6 +13,10 @@ const TeacherDashboard = () => {
   const [subjects, setSubjects] = useState([]);
   const [classes, setClasses] = useState([]);
   const [error, setError] = useState('');
+  const [classAttendance, setClassAttendance] = useState([]);
+  const [studentsInClass, setStudentsInClass] = useState([]);
+  const [attendanceMsg, setAttendanceMsg] = useState('');
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('access');
@@ -60,6 +64,72 @@ const TeacherDashboard = () => {
       .catch(() => setClasses([]));
   }, []);
 
+  // Filter assignments for this teacher (by teacher id)
+  const teacherAssignments = teacherId
+    ? assignments.filter(a => a.teacher === teacherId)
+    : [];
+
+  // Find classes where this teacher is the class teacher
+  const classTeacherOf = teacherId && classes.length > 0
+    ? classes.filter(c => c.class_teacher && c.class_teacher.id === teacherId)
+    : [];
+
+  // Fetch class attendance for class teacher
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    fetch(`${API}/my-class-attendance/`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setClassAttendance(Array.isArray(data) ? data : []))
+      .catch(() => setClassAttendance([]));
+  }, [teacherId]);
+
+  // Fetch students in the class if classTeacherOf exists
+  useEffect(() => {
+    if (classTeacherOf.length === 0) return;
+    const token = localStorage.getItem('access');
+    // Assume only one class for class teacher
+    const classId = classTeacherOf[0].id;
+    fetch(`${API}/students/`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        // Filter students by classroom
+        setStudentsInClass(data.filter(s => s.classroom === classId));
+      })
+      .catch(() => setStudentsInClass([]));
+  }, [classTeacherOf]);
+
+  // Mark attendance (check-in/check-out)
+  const markAttendance = (admission_no) => {
+    setAttendanceLoading(true);
+    setAttendanceMsg('');
+    const token = localStorage.getItem('access');
+    fetch(`${API}/attendance/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ admission_no })
+    })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        setAttendanceLoading(false);
+        if (ok) {
+          setAttendanceMsg('Attendance marked successfully!');
+        } else {
+          setAttendanceMsg(data.detail || 'Failed to mark attendance.');
+        }
+      })
+      .catch(() => {
+        setAttendanceLoading(false);
+        setAttendanceMsg('Failed to mark attendance.');
+      });
+  };
+
   const getSubjectName = id => {
     const subj = subjects.find(s => s.id === id);
     return subj ? subj.name : id;
@@ -76,16 +146,6 @@ const TeacherDashboard = () => {
 
   if (error) return <div className="student-dashboard-error">{error}</div>;
   if (!profile) return <div className="student-dashboard-loading">Loading...</div>;
-
-  // Filter assignments for this teacher (by teacher id)
-  const teacherAssignments = teacherId
-    ? assignments.filter(a => a.teacher === teacherId)
-    : [];
-
-  // Find classes where this teacher is the class teacher
-  const classTeacherOf = teacherId && classes.length > 0
-    ? classes.filter(c => c.class_teacher && c.class_teacher.id === teacherId)
-    : [];
 
   return (
     <div className="student-dashboard-container">
@@ -109,6 +169,62 @@ const TeacherDashboard = () => {
               <li key={c.id}>{c.name}</li>
             ))}
           </ul>
+        </section>
+      )}
+      {classTeacherOf.length > 0 && (
+        <section className="student-marks-section">
+          <h2>Class Attendance</h2>
+          <table className="student-marks-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classAttendance.length === 0 ? (
+                <tr><td colSpan="4">No attendance records found.</td></tr>
+              ) : classAttendance.map((att, i) => (
+                <tr key={i}>
+                  <td>{att.student}</td>
+                  <td>{att.date}</td>
+                  <td>{att.time_in}</td>
+                  <td>{att.time_out}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+      {classTeacherOf.length > 0 && (
+        <section className="student-marks-section">
+          <h2>Mark Attendance</h2>
+          {attendanceMsg && <div style={{ color: attendanceMsg.includes('success') ? 'green' : 'red' }}>{attendanceMsg}</div>}
+          {attendanceLoading && <div>Marking attendance...</div>}
+          <table className="student-marks-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Admission No</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {studentsInClass.length === 0 ? (
+                <tr><td colSpan="3">No students found in your class.</td></tr>
+              ) : studentsInClass.map(s => (
+                <tr key={s.id}>
+                  <td>{s.full_name}</td>
+                  <td>{s.admission_no}</td>
+                  <td>
+                    <button onClick={() => markAttendance(s.admission_no)} disabled={attendanceLoading}>Mark Attendance</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </section>
       )}
       <section className="student-marks-section">

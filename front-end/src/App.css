@@ -417,6 +417,81 @@ tr:nth-child(even) {
   color: #fff;
 }
 
+/* --- Enhanced Admin Students UI --- */
+.admin-students-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+.admin-students-title {
+  font-size: 2rem;
+  color: #3F51B5;
+  margin-bottom: 24px;
+  text-align: center;
+  font-weight: 700;
+}
+.admin-students-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(63, 81, 181, 0.10);
+  padding: 32px 24px 24px 24px;
+  margin-bottom: 32px;
+}
+.admin-students-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 24px;
+  justify-content: space-between;
+}
+.admin-students-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+.admin-students-field label {
+  font-size: 15px;
+  color: #3F51B5;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.admin-students-field input,
+.admin-students-field select {
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  outline: none;
+  transition: border 0.2s;
+  background: #f8f9fd;
+}
+.admin-students-field input:focus,
+.admin-students-field select:focus {
+  border: 1.5px solid #3F51B5;
+  background: #fff;
+}
+.admin-students-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.admin-students-error {
+  color: #d32f2f;
+  background: #ffebee;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin-top: 18px;
+  font-size: 15px;
+  text-align: center;
+}
+.admin-students-loading {
+  text-align: center;
+  font-size: 18px;
+  color: #3F51B5;
+  margin-top: 40px;
+}
+
 /* Admin Dashboard Sidebar Layout */
 .admin-dashboard-layout {
   display: flex;

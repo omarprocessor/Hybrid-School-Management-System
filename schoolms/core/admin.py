@@ -14,3 +14,4 @@ admin.site.register(Exam)
 admin.site.register(Mark)
 admin.site.register(Attendance)
 admin.site.register(UserProfile)
+
