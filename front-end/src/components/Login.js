@@ -1,41 +1,36 @@
-import React, { useState } from 'react';
-
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    return null;
-  }
-}
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [pending, setPending] = useState(false);
+  const navigate = useNavigate();
+  const { user, error, login, loading } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      if (user.is_superuser) {
+        navigate('/dashboard/admin');
+      } else if (!user.is_approved) {
+        setPending(true);
+      } else if (user.role === 'student') {
+        navigate('/dashboard/students');
+      } else if (user.role === 'teacher') {
+        navigate('/dashboard/teachers');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL.replace(/\/$/, '')}/token/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-      const data = await response.json();
-      localStorage.setItem('access', data.access);
-      localStorage.setItem('refresh', data.refresh);
-      const payload = parseJwt(data.access);
-      if (payload && payload.is_superuser) {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/';
-      }
-    } catch (err) {
-      setError(err.message);
+    setPending(false);
+    const result = await login(username, password);
+    if (!result.success) {
+      // error is handled by context
     }
   };
 
@@ -57,9 +52,13 @@ const Login = () => {
           onChange={e => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>Login</button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {pending && <p style={{ color: 'orange' }}>Your account is pending admin approval. Please wait.</p>}
+      <p style={{ marginTop: 20 }}>
+        Don&apos;t have an account? <a href="/register">Register here</a>
+      </p>
     </div>
   );
 };
