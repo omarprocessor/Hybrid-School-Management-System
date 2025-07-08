@@ -4,6 +4,7 @@ import AdminUserApprovals from './AdminUserApprovals';
 import AdminTeachers from './AdminTeachers';
 import AdminClasses from './AdminClasses';
 import AdminAttendance from './AdminAttendance';
+import AdminExams from './AdminExams';
 
 const sections = [
   { key: 'students', label: 'Students' },
@@ -48,6 +49,7 @@ const AdminDashboard = () => {
         {section === 'teachers' && <AdminTeachers />}
         {section === 'classes' && <AdminClasses />}
         {section === 'attendance' && <AdminAttendance />}
+        {section === 'exams' && <AdminExams />}
         {section === 'approvals' && <AdminUserApprovals />}
         {/* Render other management components here */}
       </main>
