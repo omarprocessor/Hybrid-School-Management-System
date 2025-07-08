@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 class ClassRoom(models.Model):
     name = models.CharField(max_length=20)
+    class_teacher = models.OneToOneField('Teacher', on_delete=models.SET_NULL, null=True, blank=True, related_name='classroom_as_teacher')
 
     def __str__(self):
          return self.name
@@ -16,6 +17,7 @@ class Subject(models.Model):
          return self.name
 
 class Student(models.Model):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     admission_no = models.CharField(max_length=20, unique=True)
     full_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
@@ -93,3 +95,16 @@ class Attendance(models.Model):
 
     def __str__(self):
          return f"{self.student.admission_no} - {self.student.full_name} - {self.date}"
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    requested_role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    is_approved = models.BooleanField(default=False)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.role if self.role else 'pending'})"

@@ -1,14 +1,19 @@
-from rest_framework import generics
-from .models import (ClassRoom, Exam, Mark, TeacherSubjectClass, Teacher, Student, Subject, Attendance)
-from .serializers import AttendanceSerializer
+from rest_framework import generics, status
+from rest_framework.response import Response
+from .models import (ClassRoom, Exam, Mark, TeacherSubjectClass, Teacher, Student, Subject, Attendance, UserProfile)
+from .serializers import AttendanceSerializer, RegistrationSerializer, UserProfileApprovalSerializer, MeSerializer
 
 from .serializers import (ClassRoomSerializer, 
                           SubjectSerializer, StudentSerializer, 
                           TeacherSerializer, TeacherSubjectClassSerializer, 
-                          ExamSerializer, MarkSerializer)    
+                          ExamSerializer, MarkSerializer, UserSerializer)    
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework import mixins
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
 
 
 # Classroom views
@@ -98,3 +103,66 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+class RegistrationView(generics.CreateAPIView):
+    serializer_class = RegistrationSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({'detail': 'Registration successful! Please wait for admin approval.'}, status=status.HTTP_201_CREATED)
+
+class UserApprovalListUpdateView(mixins.ListModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
+    queryset = UserProfile.objects.filter(is_approved=False)
+    serializer_class = UserProfileApprovalSerializer
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        serializer = MeSerializer(request.user)
+        return Response(serializer.data)
+
+class MyStudentView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            student = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            return Response({'detail': 'No student record found for this user.'}, status=404)
+        serializer = StudentSerializer(student)
+        return Response(serializer.data)
+
+class MyStudentMarksView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            student = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            return Response({'detail': 'No student record found for this user.'}, status=404)
+        marks = Mark.objects.filter(student=student)
+        serializer = MarkSerializer(marks, many=True)
+        return Response(serializer.data)
+
+class MyStudentAttendanceView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            student = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            return Response({'detail': 'No student record found for this user.'}, status=404)
+        attendance = Attendance.objects.filter(student=student).order_by('-date', '-time_in')
+        serializer = AttendanceSerializer(attendance, many=True)
+        return Response(serializer.data)
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]

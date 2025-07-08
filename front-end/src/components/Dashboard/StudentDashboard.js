@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import './StudentDashboard.css'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../AuthContext'
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [student, setStudent] = useState(null)
   const [marks, setMarks] = useState([])
   const [attendance, setAttendance] = useState([])
@@ -58,8 +60,7 @@ const StudentDashboard = () => {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
+    logout();
     navigate('/login');
   }
 

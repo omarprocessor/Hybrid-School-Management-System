@@ -32,6 +32,14 @@ urlpatterns = [
      # Attendance
     path('attendance/', views.AttendanceCreateView.as_view(), name='attendance-create'),
     path('attendance/list/', views.AttendanceListView.as_view(), name='attendance-list'),
+    path('register/', views.RegistrationView.as_view(), name='register'),
+    path('user-approvals/', views.UserApprovalListUpdateView.as_view(), name='user-approvals'),
+    path('user-approvals/<int:pk>/', views.UserApprovalListUpdateView.as_view(), name='user-approval-detail'),
+    path('me/', views.MeView.as_view(), name='me'),
+    path('my-student/', views.MyStudentView.as_view(), name='my-student'),
+    path('my-marks/', views.MyStudentMarksView.as_view(), name='my-marks'),
+    path('my-attendance/', views.MyStudentAttendanceView.as_view(), name='my-attendance'),
+    path('users/', views.UserListView.as_view(), name='user-list'),
 ]
 
 

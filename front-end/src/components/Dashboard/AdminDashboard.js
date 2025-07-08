@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import AdminStudents from './AdminStudents';
+import AdminUserApprovals from './AdminUserApprovals';
+import AdminTeachers from './AdminTeachers';
+import AdminClasses from './AdminClasses';
 
 const sections = [
   { key: 'students', label: 'Students' },
   { key: 'teachers', label: 'Teachers' },
+  { key: 'classes', label: 'Classes' },
   { key: 'marks', label: 'Marks' },
   { key: 'attendance', label: 'Attendance' },
   { key: 'exams', label: 'Exams' },
   { key: 'subjects', label: 'Subjects' },
+  { key: 'approvals', label: 'User Approvals' },
 ];
 
 const AdminDashboard = () => {
@@ -39,6 +44,9 @@ const AdminDashboard = () => {
       <main className="admin-main-content">
         <h1>Admin Dashboard</h1>
         {section === 'students' && <AdminStudents />}
+        {section === 'teachers' && <AdminTeachers />}
+        {section === 'classes' && <AdminClasses />}
+        {section === 'approvals' && <AdminUserApprovals />}
         {/* Render other management components here */}
       </main>
     </div>

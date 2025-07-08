@@ -8,8 +8,8 @@ return (
   <aside className="sidebar">
     <div className="sidebar-title">📚 SchoolMS</div>
     <nav>
-      <Link to="/dashboard/students">Students</Link>
-      <Link to="/dashboard/teachers">Teachers</Link>
+      {/* <Link to="/dashboard/students">Students</Link> */}
+      {/* <Link to="/dashboard/teachers">Teachers</Link> */}
       <Link to="/dashboard/classes">Classes</Link>
       <Link to="/dashboard/subjects">Subjects</Link>
       <Link to="/dashboard/exams">Exams</Link>

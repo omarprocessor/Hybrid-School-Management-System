@@ -2,7 +2,7 @@ from rest_framework import serializers
 from datetime import date
 from django.utils import timezone
 from django.contrib.auth.models import User
-from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance
+from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile
 import africastalking
 from django.conf import settings
 
@@ -13,11 +13,21 @@ africastalking.initialize(
 )
 sms = africastalking.SMS
 
+class TeacherSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = Teacher
+        fields = '__all__'
 
 class ClassRoomSerializer(serializers.ModelSerializer):
+    class_teacher = TeacherSerializer(read_only=True)
+    class_teacher_id = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), source='class_teacher', write_only=True, required=False)
+
     class Meta:
         model = ClassRoom
         fields = '__all__'
+        extra_fields = ['class_teacher_id']
 
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,13 +46,6 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email']
-
-class TeacherSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-
-    class Meta:
-        model = Teacher
-        fields = '__all__'
 
 class TeacherSubjectClassSerializer(serializers.ModelSerializer):
     teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
@@ -129,3 +132,73 @@ class AttendanceSerializer(serializers.ModelSerializer):
             print(response)
         except Exception as e:
             print(f"SMS failed: {e}")
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    requested_role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES)
+    password = serializers.CharField(write_only=True)
+    # Add student fields
+    full_name = serializers.CharField(required=False)
+    admission_no = serializers.CharField(required=False)
+    gender = serializers.CharField(required=False)
+    classroom = serializers.PrimaryKeyRelatedField(queryset=ClassRoom.objects.all(), required=False)
+    parent_phone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'requested_role', 'full_name', 'admission_no', 'gender', 'classroom', 'parent_phone']
+
+    def create(self, validated_data):
+        requested_role = validated_data.pop('requested_role', None)
+        gender = validated_data.pop('gender', None)
+        # Remove student creation logic here
+        # Previously, a Student record was created here if requested_role == 'student'.
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        UserProfile.objects.create(user=user, requested_role=requested_role)
+        return user
+
+class UserProfileApprovalSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    student_id = serializers.IntegerField(write_only=True, required=False)
+    teacher_id = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'username', 'email', 'requested_role', 'is_approved', 'role', 'student_id', 'teacher_id']
+
+    def update(self, instance, validated_data):
+        student_id = validated_data.pop('student_id', None)
+        teacher_id = validated_data.pop('teacher_id', None)
+        role = validated_data.get('role')
+        user = instance.user
+        # Map user to student or teacher
+        if role == 'student' and student_id:
+            from .models import Student
+            student = Student.objects.get(id=student_id)
+            student.user = user
+            student.save()
+        if role == 'teacher' and teacher_id:
+            from .models import Teacher
+            teacher = Teacher.objects.get(id=teacher_id)
+            teacher.user = user
+            teacher.save()
+        return super().update(instance, validated_data)
+
+class MeSerializer(serializers.ModelSerializer):
+    is_approved = serializers.SerializerMethodField()
+    is_superuser = serializers.BooleanField(read_only=True)
+    role = serializers.CharField(source='userprofile.role', read_only=True)
+    requested_role = serializers.CharField(source='userprofile.requested_role', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'is_approved', 'is_superuser', 'role', 'requested_role']
+
+    def get_is_approved(self, obj):
+        if obj.is_superuser:
+            return True
+        return obj.userprofile.is_approved
