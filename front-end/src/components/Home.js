@@ -7,28 +7,28 @@ return (
 <>
 <Header />
 <section className="hero">
-  <h1>Welcome to SchoolMS</h1>
-  <p>A center of academic excellence in Your Region</p>
+  <h1>Welcome to Hybrid School</h1>
+  <p>Empowering students for a brighter future in Timbora Street.</p>
   <button>Explore Our School</button>
 </section>
 
 <section className="features">
   <div>
     <h3>🎯 Our Mission</h3>
-    <p>Lorem ipsum dolor sit amet, an center of academic exices.</p>
+    <p>To provide quality education and foster holistic development for every learner.</p>
   </div>
   <div>
     <h3>👁️ Our Vision</h3>
-    <p>Lorem ipsum dolor sit amet, visernecus vitae mata.</p>
+    <p>To be a leading center of academic excellence and innovation in the region.</p>
   </div>
   <div>
     <h3>💡 Our Motto</h3>
-    <p>Lorem ipsum dolor, sit amet, consectetur suptisc.</p>
+    <p>Inspiring Success, Shaping the Future.</p>
   </div>
 </section>
 
 <footer className="footer">
-  © 2024 SchoolMS. All rights reserved.
+  © 2025 Hybrid School. All rights reserved.
 </footer>
 </>
 )
