@@ -9,6 +9,7 @@ return (
     <a href="/">Home</a>
     <a href="/about">About Us</a>
     <a href="/contact">Contact</a>
+    <a href="/blog">Blog</a>
     <a href="/login">Login</a>
   </nav>
 </header>

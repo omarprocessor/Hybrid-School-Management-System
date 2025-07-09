@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile
+from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile, BlogPost
 
 @admin.register(ClassRoom)
 class ClassRoomAdmin(admin.ModelAdmin):
@@ -14,4 +14,5 @@ admin.site.register(Exam)
 admin.site.register(Mark)
 admin.site.register(Attendance)
 admin.site.register(UserProfile)
+admin.site.register(BlogPost)
 

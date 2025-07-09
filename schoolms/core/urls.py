@@ -41,6 +41,9 @@ urlpatterns = [
     path('my-attendance/', views.MyStudentAttendanceView.as_view(), name='my-attendance'),
     path('users/', views.UserListView.as_view(), name='user-list'),
     path('my-class-attendance/', views.MyClassAttendanceView.as_view(), name='my-class-attendance'),
+    # Blog
+    path('blog/', views.BlogPostListCreateView.as_view(), name='blog-list'),
+    path('blog/<slug:slug>/', views.BlogPostDetailView.as_view(), name='blog-detail'),
 ]
 
 

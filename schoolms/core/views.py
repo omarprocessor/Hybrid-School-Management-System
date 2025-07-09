@@ -1,12 +1,12 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import (ClassRoom, Exam, Mark, TeacherSubjectClass, Teacher, Student, Subject, Attendance, UserProfile)
+from .models import (ClassRoom, Exam, Mark, TeacherSubjectClass, Teacher, Student, Subject, Attendance, UserProfile, BlogPost)
 from .serializers import AttendanceSerializer, RegistrationSerializer, UserProfileApprovalSerializer, MeSerializer
 
 from .serializers import (ClassRoomSerializer, 
                           SubjectSerializer, StudentSerializer, 
                           TeacherSerializer, TeacherSubjectClassSerializer, 
-                          ExamSerializer, MarkSerializer, UserSerializer)    
+                          ExamSerializer, MarkSerializer, UserSerializer, BlogPostSerializer)    
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -188,3 +188,12 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
+
+class BlogPostListCreateView(generics.ListCreateAPIView):
+    queryset = BlogPost.objects.all().order_by('-created_at')
+    serializer_class = BlogPostSerializer
+
+class BlogPostDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BlogPost.objects.all()
+    serializer_class = BlogPostSerializer
+    lookup_field = 'slug'

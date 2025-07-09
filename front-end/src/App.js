@@ -9,6 +9,8 @@ import Register from './components/Register';
 import StudentDashboard from './components/Dashboard/StudentDashboard';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
 import TeacherDashboard from './components/Dashboard/TeacherDashboard';
+import Blog from './components/Blog';
+import BlogPost from './components/BlogPost';
 import './App.css'
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
           <Route path="/dashboard/students" element={<StudentDashboard />} />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="/dashboard/teachers" element={<TeacherDashboard />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
         </Routes>
       </Router>
     </AuthProvider>

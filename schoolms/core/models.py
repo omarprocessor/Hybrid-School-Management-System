@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
 class ClassRoom(models.Model):
     name = models.CharField(max_length=20)
@@ -108,3 +109,25 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.role if self.role else 'pending'})"
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    image = models.ImageField(upload_to='blog_images/')
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+            # Ensure uniqueness
+            counter = 1
+            orig_slug = self.slug
+            while BlogPost.objects.filter(slug=self.slug).exists():
+                self.slug = f"{orig_slug}-{counter}"
+                counter += 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title

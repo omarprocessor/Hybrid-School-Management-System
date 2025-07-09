@@ -6,7 +6,7 @@ const AdminAttendance = () => {
   const [attendance, setAttendance] = useState([]);
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [filter, setFilter] = useState({ classroom: '', date: '', student: '' });
+  const [filter, setFilter] = useState({ classroom: '', date: '' });
   const [form, setForm] = useState({ admission_no: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,7 +20,6 @@ const AdminAttendance = () => {
     const params = [];
     if (filter.classroom) params.push(`classroom=${filter.classroom}`);
     if (filter.date) params.push(`date=${filter.date}`);
-    if (filter.student) params.push(`student=${filter.student}`);
     if (params.length) url += '?' + params.join('&');
     try {
       const res = await fetch(url);
@@ -36,7 +35,6 @@ const AdminAttendance = () => {
   // Fetch students and classes for filters and form
   useEffect(() => {
     fetchAttendance();
-    fetch(`${API}/students/`).then(res => res.json()).then(setStudents).catch(() => setStudents([]));
     fetch(`${API}/classrooms/`).then(res => res.json()).then(setClasses).catch(() => setClasses([]));
     // eslint-disable-next-line
   }, [filter]);
@@ -87,6 +85,15 @@ const AdminAttendance = () => {
     }
   };
 
+  // Helper to get classroom name from ID or name
+  const getClassName = classroomValue => {
+    // If it's a number or stringified number, try to find the class by ID
+    const found = classes.find(c => c.id === classroomValue || c.id === Number(classroomValue));
+    if (found) return found.name;
+    // Otherwise, assume it's already a name
+    return classroomValue;
+  };
+
   return (
     <div className="admin-students-container">
       <h2 className="admin-students-title">Manage Attendance</h2>
@@ -119,15 +126,6 @@ const AdminAttendance = () => {
             <label>Date</label>
             <input type="date" name="date" value={filter.date} onChange={handleFilterChange} />
           </div>
-          <div className="admin-students-field">
-            <label>Student</label>
-            <select name="student" value={filter.student} onChange={handleFilterChange}>
-              <option value="">All</option>
-              {students.map(s => (
-                <option key={s.id} value={s.id}>{s.full_name} ({s.admission_no})</option>
-              ))}
-            </select>
-          </div>
         </form>
       </div>
       {loading ? <div className="admin-students-loading">Loading...</div> : (
@@ -148,7 +146,7 @@ const AdminAttendance = () => {
             ) : attendance.map((att, i) => (
               <tr key={i}>
                 <td>{att.student}</td>
-                <td>{att.classroom}</td>
+                <td>{getClassName(att.classroom)}</td>
                 <td>{att.date}</td>
                 <td>{att.time_in}</td>
                 <td>{att.time_out || '-'}</td>

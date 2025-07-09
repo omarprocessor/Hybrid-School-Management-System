@@ -2,7 +2,7 @@ from rest_framework import serializers
 from datetime import date
 from django.utils import timezone
 from django.contrib.auth.models import User
-from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile
+from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile, BlogPost
 import africastalking
 from django.conf import settings
 
@@ -202,3 +202,8 @@ class MeSerializer(serializers.ModelSerializer):
         if obj.is_superuser:
             return True
         return obj.userprofile.is_approved
+
+class BlogPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = '__all__'
