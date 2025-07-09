@@ -4,7 +4,7 @@ const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminExams = () => {
   const [exams, setExams] = useState([]);
-  const [form, setForm] = useState({ name: '', term: '', year: '' });
+  const [form, setForm] = useState({ name: '', term: '', year: '', start_date: '' });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -35,6 +35,10 @@ const AdminExams = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    if (!form.start_date) {
+      setError('Start date is required.');
+      return;
+    }
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${API}/exams/${editingId}/` : `${API}/exams/`;
@@ -44,7 +48,7 @@ const AdminExams = () => {
         body: JSON.stringify(form)
       });
       if (!res.ok) throw new Error('Failed to save exam');
-      setForm({ name: '', term: '', year: '' });
+      setForm({ name: '', term: '', year: '', start_date: '' });
       setEditingId(null);
       fetchExams();
     } catch (err) {
@@ -54,7 +58,7 @@ const AdminExams = () => {
 
   // Edit button
   const handleEdit = exam => {
-    setForm({ name: exam.name, term: exam.term, year: exam.year });
+    setForm({ name: exam.name, term: exam.term, year: exam.year, start_date: exam.start_date || '' });
     setEditingId(exam.id);
   };
 
@@ -87,9 +91,13 @@ const AdminExams = () => {
             <label htmlFor="year">Year</label>
             <input id="year" name="year" placeholder="Year (e.g. 2025)" value={form.year} onChange={handleChange} required />
           </div>
+          <div className="admin-students-field">
+            <label htmlFor="start_date">Start Date</label>
+            <input id="start_date" name="start_date" type="date" value={form.start_date} onChange={handleChange} required />
+          </div>
           <div className="admin-students-actions">
             <button type="submit">{editingId ? 'Update' : 'Add'} Exam</button>
-            {editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', term: '', year: '' }); }}>Cancel</button>}
+            {editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', term: '', year: '', start_date: '' }); }}>Cancel</button>}
           </div>
         </form>
         {error && <div className="admin-students-error">{error}</div>}
@@ -101,17 +109,19 @@ const AdminExams = () => {
               <th>Name</th>
               <th>Term</th>
               <th>Year</th>
+              <th>Start Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {exams.length === 0 ? (
-              <tr><td colSpan="4">No exams found.</td></tr>
+              <tr><td colSpan="5">No exams found.</td></tr>
             ) : exams.map(exam => (
               <tr key={exam.id}>
                 <td>{exam.name}</td>
                 <td>{exam.term}</td>
                 <td>{exam.year}</td>
+                <td>{exam.start_date}</td>
                 <td>
                   <button onClick={() => handleEdit(exam)}>Edit</button>
                   <button onClick={() => handleDelete(exam.id)} style={{ marginLeft: 8, color: 'red' }}>Delete</button>

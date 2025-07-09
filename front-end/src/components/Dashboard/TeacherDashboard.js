@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 
@@ -17,6 +17,12 @@ const TeacherDashboard = () => {
   const [studentsInClass, setStudentsInClass] = useState([]);
   const [attendanceMsg, setAttendanceMsg] = useState('');
   const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [exams, setExams] = useState([]);
+  const [selectedExam, setSelectedExam] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [csvStatus, setCsvStatus] = useState('');
+  const [csvErrors, setCsvErrors] = useState([]);
+  const fileInputRef = useRef();
 
   useEffect(() => {
     const token = localStorage.getItem('access');
@@ -62,6 +68,13 @@ const TeacherDashboard = () => {
       .then(res => res.ok ? res.json() : [])
       .then(data => setClasses(data))
       .catch(() => setClasses([]));
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API}/exams/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setExams(data))
+      .catch(() => setExams([]));
   }, []);
 
   // Filter assignments for this teacher (by teacher id)
@@ -128,6 +141,66 @@ const TeacherDashboard = () => {
         setAttendanceLoading(false);
         setAttendanceMsg('Failed to mark attendance.');
       });
+  };
+
+  const handleDownloadTemplate = () => {
+    if (!selectedExam || !selectedClass) {
+      setCsvStatus('Please select both exam and class.');
+      return;
+    }
+    setCsvStatus('');
+    const token = localStorage.getItem('access');
+    fetch(`${API}/marks/template/?exam=${selectedExam}&classroom=${selectedClass}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to download template');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'marks_template.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(() => setCsvStatus('Failed to download template.'));
+  };
+
+  const handleCsvUpload = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!selectedExam || !selectedClass) {
+      setCsvStatus('Please select both exam and class before uploading.');
+      return;
+    }
+    setCsvStatus('Uploading...');
+    setCsvErrors([]);
+    const token = localStorage.getItem('access');
+    const formData = new FormData();
+    formData.append('exam', selectedExam);
+    formData.append('classroom', selectedClass);
+    formData.append('file', file);
+    fetch(`${API}/marks/upload/`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok) {
+          setCsvStatus(`Upload successful. Created: ${data.created}, Updated: ${data.updated}`);
+          setCsvErrors(data.errors || []);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        } else {
+          setCsvStatus('Upload failed.');
+          setCsvErrors(data.errors || [data.detail || 'Unknown error']);
+        }
+      })
+      .catch(() => setCsvStatus('Upload failed.'));
   };
 
   const getSubjectName = id => {
@@ -225,6 +298,35 @@ const TeacherDashboard = () => {
               ))}
             </tbody>
           </table>
+        </section>
+      )}
+      {classTeacherOf.length > 0 && (
+        <section className="student-marks-section">
+          <h2>Exam Results (CSV Upload)</h2>
+          <div style={{ marginBottom: 12 }}>
+            <label>Exam: </label>
+            <select value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
+              <option value="">Select Exam</option>
+              {exams.map(e => (
+                <option key={e.id} value={e.id}>{e.name} ({e.term} {e.year})</option>
+              ))}
+            </select>
+            <label style={{ marginLeft: 16 }}>Class: </label>
+            <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
+              <option value="">Select Class</option>
+              {classTeacherOf.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <button style={{ marginLeft: 16 }} onClick={handleDownloadTemplate}>Download Template</button>
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleCsvUpload} />
+          </div>
+          {csvStatus && <div style={{ color: csvStatus.includes('success') ? 'green' : 'red' }}>{csvStatus}</div>}
+          {csvErrors.length > 0 && (
+            <ul style={{ color: 'red' }}>{csvErrors.map((err, i) => <li key={i}>{err}</li>)}</ul>
+          )}
         </section>
       )}
       <section className="student-marks-section">

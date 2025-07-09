@@ -92,28 +92,48 @@ return (
           <thead>
             <tr>
               <th>Exam</th>
-              <th>Subject</th>
-              <th>CAT 1</th>
-              <th>CAT 2</th>
-              <th>Exam Score</th>
+              {subjects.map(subject => (
+                <th key={subject.id}>{subject.name}</th>
+              ))}
               <th>Total</th>
+              <th>Average</th>
               <th>Grade</th>
             </tr>
           </thead>
           <tbody>
-            {marks.length === 0 ? (
-              <tr><td colSpan="7">No marks found.</td></tr>
-            ) : marks.map(mark => (
-              <tr key={mark.id}>
-                <td>{getExamName(mark.exam)}</td>
-                <td>{getSubjectName(mark.subject)}</td>
-                <td>{mark.cat1}</td>
-                <td>{mark.cat2}</td>
-                <td>{mark.exam_score}</td>
-                <td>{mark.total}</td>
-                <td>{mark.grade}</td>
-              </tr>
-            ))}
+            {exams.length === 0 ? (
+              <tr><td colSpan={3 + subjects.length}>No exams found.</td></tr>
+            ) : exams.map(exam => {
+              // Gather marks for this exam
+              const examMarks = marks.filter(mark => mark.exam === exam.id);
+              // Map subject id to mark
+              const subjectMarkMap = {};
+              examMarks.forEach(mark => {
+                subjectMarkMap[mark.subject] = mark.exam_score;
+              });
+              // Calculate total, average, and grade
+              const total = examMarks.reduce((sum, mark) => sum + (mark.exam_score || 0), 0);
+              const count = subjects.length;
+              const average = count > 0 ? (total / count) : 0;
+              let grade = 'E';
+              if (average >= 80) grade = 'A';
+              else if (average >= 70) grade = 'B+';
+              else if (average >= 60) grade = 'B';
+              else if (average >= 50) grade = 'C';
+              else if (average >= 40) grade = 'D';
+              // Render row
+              return (
+                <tr key={exam.id}>
+                  <td>{getExamName(exam.id)}</td>
+                  {subjects.map(subject => (
+                    <td key={subject.id}>{subjectMarkMap[subject.id] !== undefined ? subjectMarkMap[subject.id] : '-'}</td>
+                  ))}
+                  <td>{total}</td>
+                  <td>{average.toFixed(2)}</td>
+                  <td>{grade}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>

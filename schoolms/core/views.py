@@ -14,6 +14,11 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework import mixins
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
+import csv
+from django.http import StreamingHttpResponse
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 
 # Classroom views
@@ -201,3 +206,94 @@ class BlogPostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
     lookup_field = 'slug'
+
+class MarksTemplateDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        exam_id = request.query_params.get('exam')
+        class_id = request.query_params.get('classroom')
+        if not exam_id or not class_id:
+            return Response({'detail': 'exam and classroom are required.'}, status=400)
+        try:
+            exam = Exam.objects.get(id=exam_id)
+            classroom = ClassRoom.objects.get(id=class_id)
+        except (Exam.DoesNotExist, ClassRoom.DoesNotExist):
+            return Response({'detail': 'Invalid exam or classroom.'}, status=404)
+        students = Student.objects.filter(classroom=classroom)
+        subjects = Subject.objects.all()
+        header = ['admission_no', 'name'] + [s.name for s in subjects] + ['total', 'average', 'grade']
+        def row_gen():
+            yield header
+            for student in students:
+                row = [student.admission_no, student.full_name] + ['' for _ in subjects] + ['', '', '']
+                yield row
+        pseudo_buffer = (','.join(map(str, row)) + '\n' for row in row_gen())
+        response = StreamingHttpResponse(pseudo_buffer, content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="marks_template_{exam.name}_{classroom.name}.csv"'
+        return response
+
+class MarksCSVUploadView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        exam_id = request.data.get('exam')
+        class_id = request.data.get('classroom')
+        file = request.FILES.get('file')
+        if not exam_id or not class_id or not file:
+            return Response({'detail': 'exam, classroom, and file are required.'}, status=400)
+        try:
+            exam = Exam.objects.get(id=exam_id)
+            classroom = ClassRoom.objects.get(id=class_id)
+        except (Exam.DoesNotExist, ClassRoom.DoesNotExist):
+            return Response({'detail': 'Invalid exam or classroom.'}, status=404)
+        subjects = list(Subject.objects.all())
+        students = {s.admission_no: s for s in Student.objects.filter(classroom=classroom)}
+        import csv
+        reader = csv.DictReader((line.decode('utf-8') for line in file), skipinitialspace=True)
+        created, updated, errors = 0, 0, []
+        for row in reader:
+            adm = row.get('admission_no')
+            student = students.get(adm)
+            if not student:
+                errors.append(f"Student with admission_no {adm} not found.")
+                continue
+            total = 0
+            count = 0
+            for subj in subjects:
+                mark_str = row.get(subj.name)
+                if mark_str is None or mark_str.strip() == '':
+                    continue
+                try:
+                    exam_score = int(mark_str)
+                except ValueError:
+                    errors.append(f"Invalid score for {subj.name} for {adm}.")
+                    continue
+                mark, created_obj = Mark.objects.update_or_create(
+                    exam=exam, student=student, subject=subj,
+                    defaults={'exam_score': exam_score, 'teacher': getattr(request.user, 'teacher', None)}
+                )
+                if created_obj:
+                    created += 1
+                else:
+                    updated += 1
+                total += exam_score
+                count += 1
+            # Calculate average
+            average = total / count if count > 0 else 0
+            # Use grade from CSV if provided, else calculate
+            grade = row.get('grade')
+            if not grade or grade.strip() == '':
+                if average >= 80:
+                    grade = 'A'
+                elif average >= 70:
+                    grade = 'B+'
+                elif average >= 60:
+                    grade = 'B'
+                elif average >= 50:
+                    grade = 'C'
+                elif average >= 40:
+                    grade = 'D'
+                else:
+                    grade = 'E'
+            # Optionally, you could store the average/grade somewhere or return them in the response
+        return Response({'created': created, 'updated': updated, 'errors': errors})

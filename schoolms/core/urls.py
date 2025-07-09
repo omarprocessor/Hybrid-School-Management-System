@@ -28,6 +28,8 @@ urlpatterns = [
     # Mark
     path('marks/', views.MarkListCreateView.as_view(), name='mark-list'),
     path('marks/<int:pk>/', views.MarkDetailView.as_view(), name='mark-detail'),
+    path('marks/template/', views.MarksTemplateDownloadView.as_view(), name='marks-template-download'),
+    path('marks/upload/', views.MarksCSVUploadView.as_view(), name='marks-csv-upload'),
 
      # Attendance
     path('attendance/', views.AttendanceCreateView.as_view(), name='attendance-create'),
