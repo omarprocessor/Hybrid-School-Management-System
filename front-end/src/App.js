@@ -11,6 +11,9 @@ import AdminDashboard from './components/Dashboard/AdminDashboard';
 import TeacherDashboard from './components/Dashboard/TeacherDashboard';
 import Blog from './components/Blog';
 import BlogPost from './components/BlogPost';
+import StudentProfile from './components/Dashboard/StudentProfile';
+import StudentMarks from './components/Dashboard/StudentMarks';
+import StudentAttendance from './components/Dashboard/StudentAttendance';
 import './App.css'
 
 function App() {
@@ -26,6 +29,12 @@ function App() {
           <Route path="/dashboard/students" element={<StudentDashboard />} />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="/dashboard/teachers" element={<TeacherDashboard />} />
+          <Route path="/dashboard/students/*" element={<StudentDashboard />}>
+            <Route path="profile" element={<StudentProfile />} />
+            <Route path="marks" element={<StudentMarks />} />
+            <Route path="attendance" element={<StudentAttendance />} />
+            <Route index element={<StudentProfile />} />
+          </Route>
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
         </Routes>
