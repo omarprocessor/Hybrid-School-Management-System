@@ -89,8 +89,17 @@ class AttendanceCreateView(generics.CreateAPIView):
     serializer_class = AttendanceSerializer
 
 class AttendanceListView(generics.ListAPIView):
-    queryset = Attendance.objects.all().order_by('-date', '-time_in')
     serializer_class = AttendanceSerializer
+
+    def get_queryset(self):
+        queryset = Attendance.objects.all().order_by('-date', '-time_in')
+        classroom = self.request.query_params.get('classroom')
+        date = self.request.query_params.get('date')
+        if classroom:
+            queryset = queryset.filter(classroom__id=classroom)
+        if date:
+            queryset = queryset.filter(date=date)
+        return queryset
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
