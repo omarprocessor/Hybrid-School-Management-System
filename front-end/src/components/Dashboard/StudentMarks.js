@@ -27,6 +27,12 @@ const StudentMarks = () => {
             examMarks.forEach(mark => {
               subjectMarkMap[mark.subject] = mark.exam_score;
             });
+            // Check if all marks are missing or zero
+            const allEmpty = subjects.every(subject => {
+              const val = subjectMarkMap[subject.id];
+              return val === undefined || val === 0 || val === '-' || val === null;
+            });
+            if (allEmpty) return null;
             const total = examMarks.reduce((sum, mark) => sum + (mark.exam_score || 0), 0);
             const count = subjects.length;
             const average = count > 0 ? (total / count) : 0;
