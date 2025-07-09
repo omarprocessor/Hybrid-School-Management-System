@@ -15,6 +15,7 @@ sms = africastalking.SMS
 
 class TeacherSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    profile_pic = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Teacher
@@ -36,6 +37,7 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     classroom = serializers.PrimaryKeyRelatedField(queryset=ClassRoom.objects.all())
+    profile_pic = serializers.ImageField(required=False, allow_null=True)
 
 
     class Meta:
@@ -165,10 +167,11 @@ class UserProfileApprovalSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     student_id = serializers.IntegerField(write_only=True, required=False)
     teacher_id = serializers.IntegerField(write_only=True, required=False)
+    profile_pic = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'requested_role', 'is_approved', 'role', 'student_id', 'teacher_id']
+        fields = ['id', 'username', 'email', 'requested_role', 'is_approved', 'role', 'student_id', 'teacher_id', 'profile_pic']
 
     def update(self, instance, validated_data):
         student_id = validated_data.pop('student_id', None)
@@ -193,15 +196,22 @@ class MeSerializer(serializers.ModelSerializer):
     is_superuser = serializers.BooleanField(read_only=True)
     role = serializers.CharField(source='userprofile.role', read_only=True)
     requested_role = serializers.CharField(source='userprofile.requested_role', read_only=True)
+    profile_pic = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'is_approved', 'is_superuser', 'role', 'requested_role']
+        fields = ['id', 'username', 'email', 'is_approved', 'is_superuser', 'role', 'requested_role', 'profile_pic']
 
     def get_is_approved(self, obj):
         if obj.is_superuser:
             return True
         return obj.userprofile.is_approved
+
+    def get_profile_pic(self, obj):
+        try:
+            return obj.student.profile_pic.url if obj.student.profile_pic else None
+        except Exception:
+            return None
 
 class BlogPostSerializer(serializers.ModelSerializer):
     class Meta:

@@ -5,7 +5,7 @@ const API = process.env.REACT_APP_API_BASE_URL;
 const AdminStudents = () => {
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [form, setForm] = useState({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '' });
+  const [form, setForm] = useState({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '', profile_pic: null });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,11 @@ const AdminStudents = () => {
   };
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'profile_pic') {
+      setForm({ ...form, profile_pic: e.target.files[0] });
+    } else {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    }
   };
 
   const handleSubmit = e => {
@@ -36,15 +40,18 @@ const AdminStudents = () => {
     setError('');
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `${API}/students/${editingId}/` : `${API}/students/`;
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) formData.append(key, value);
+    });
     fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: formData
     })
       .then(res => res.json().then(data => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
         if (ok) {
-          setForm({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '' });
+          setForm({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '', profile_pic: null });
           setEditingId(null);
           setStudents(editingId ? students.map(s => s.id === editingId ? data : s) : [...students, data]);
         } else {
@@ -108,9 +115,13 @@ const AdminStudents = () => {
             <label htmlFor="parent_phone">Parent Phone</label>
             <input id="parent_phone" name="parent_phone" placeholder="Parent Phone" value={form.parent_phone} onChange={handleChange} required />
           </div>
+          <div className="admin-students-field">
+            <label htmlFor="profile_pic">Profile Picture</label>
+            <input id="profile_pic" name="profile_pic" type="file" accept="image/*" onChange={handleChange} />
+          </div>
           <div className="admin-students-actions">
             <button type="submit">{editingId ? 'Update' : 'Add'} Student</button>
-            {editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '' }); }}>Cancel</button>}
+            {editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '', profile_pic: null }); }}>Cancel</button>}
           </div>
         </form>
         {error && <div className="admin-students-error">{error}</div>}
@@ -118,6 +129,7 @@ const AdminStudents = () => {
       <table className="admin-students-table">
         <thead>
           <tr>
+            <th>Profile Pic</th>
             <th>Full Name</th>
             <th>Admission No</th>
             <th>Gender</th>
@@ -129,6 +141,7 @@ const AdminStudents = () => {
         <tbody>
           {students.map(s => (
             <tr key={s.id}>
+              <td><img src={s.profile_pic || '/default-avatar.png'} alt="Profile" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} /></td>
               <td>{s.full_name}</td>
               <td>{s.admission_no}</td>
               <td>{s.gender}</td>

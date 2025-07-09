@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const API = process.env.REACT_APP_API_BASE_URL;
+const API = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api';
 
 const AdminAttendance = () => {
   const [attendance, setAttendance] = useState([]);
@@ -11,6 +11,7 @@ const AdminAttendance = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [marking, setMarking] = useState(false);
 
   // Fetch all attendance records
   const fetchAttendance = async () => {
@@ -54,6 +55,7 @@ const AdminAttendance = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setMarking(true);
     try {
       const res = await fetch(`${API}/attendance/`, {
         method: 'POST',
@@ -68,6 +70,7 @@ const AdminAttendance = () => {
     } catch (err) {
       setError(err.message);
     }
+    setMarking(false);
   };
 
   // Delete attendance (if supported)
@@ -87,10 +90,8 @@ const AdminAttendance = () => {
 
   // Helper to get classroom name from ID or name
   const getClassName = classroomValue => {
-    // If it's a number or stringified number, try to find the class by ID
     const found = classes.find(c => c.id === classroomValue || c.id === Number(classroomValue));
     if (found) return found.name;
-    // Otherwise, assume it's already a name
     return classroomValue;
   };
 
@@ -104,7 +105,7 @@ const AdminAttendance = () => {
             <input id="admission_no" name="admission_no" placeholder="Admission No" value={form.admission_no} onChange={handleFormChange} required />
           </div>
           <div className="admin-students-actions">
-            <button type="submit">Mark Attendance</button>
+            <button type="submit" disabled={marking}>{marking ? 'Marking...' : 'Mark Attendance'}</button>
           </div>
         </form>
         {error && <div className="admin-students-error">{error}</div>}

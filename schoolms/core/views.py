@@ -47,10 +47,12 @@ class SubjectDetailView(generics.RetrieveUpdateDestroyAPIView):
 class StudentListCreateView(generics.ListCreateAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    parser_classes = [MultiPartParser, FormParser]
 
 class StudentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    parser_classes = [MultiPartParser, FormParser]
     
 # Teacher
 class TeacherListCreateView(generics.ListCreateAPIView):

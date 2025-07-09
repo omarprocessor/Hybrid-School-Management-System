@@ -23,7 +23,8 @@ class Student(models.Model):
     full_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
     classroom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE)
-    parent_phone = models.CharField(max_length=15, blank=True, null=True) 
+    parent_phone = models.CharField(max_length=15, blank=True, null=True)
+    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def __str__(self):
          return self.full_name
@@ -31,6 +32,7 @@ class Student(models.Model):
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
+    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def __str__(self):
          return self.full_name
@@ -88,6 +90,7 @@ class UserProfile(models.Model):
     requested_role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     is_approved = models.BooleanField(default=False)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, blank=True, null=True)
+    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username} ({self.role if self.role else 'pending'})"

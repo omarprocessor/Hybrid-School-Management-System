@@ -8,6 +8,7 @@ import AdminExams from './AdminExams';
 import AdminSubjects from './AdminSubjects';
 import AdminBlog from './AdminBlog';
 import AdminTeacherSubjectClass from './AdminTeacherSubjectClass';
+import AdminMarks from './AdminMarks';
 
 const sections = [
   { key: 'students', label: 'Students' },
@@ -49,10 +50,11 @@ const AdminDashboard = () => {
         <button onClick={handleLogout} style={{ marginTop: 'auto', background: '#fff', color: '#3F51B5', width: '100%' }}>Logout</button>
       </aside>
       <main className="admin-main-content">
-    <h1>Admin Dashboard</h1>
+        <h1>Admin Dashboard</h1>
         {section === 'students' && <AdminStudents />}
         {section === 'teachers' && <AdminTeachers />}
         {section === 'classes' && <AdminClasses />}
+        {section === 'marks' && <AdminMarks />}
         {section === 'attendance' && <AdminAttendance />}
         {section === 'exams' && <AdminExams />}
         {section === 'subjects' && <AdminSubjects />}
@@ -61,8 +63,8 @@ const AdminDashboard = () => {
         {section === 'blog' && <AdminBlog />}
         {/* Render other management components here */}
       </main>
-  </div>
-);
+    </div>
+  );
 };
 
 export default AdminDashboard; 

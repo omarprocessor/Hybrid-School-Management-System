@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 
-const API = process.env.REACT_APP_API_BASE_URL;
+const API = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api';
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +22,8 @@ const TeacherDashboard = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [csvStatus, setCsvStatus] = useState('');
   const [csvErrors, setCsvErrors] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef();
 
   useEffect(() => {
@@ -202,6 +204,8 @@ const TeacherDashboard = () => {
       })
       .catch(() => setCsvStatus('Upload failed.'));
   };
+
+  // Remove all profile picture upload and display logic
 
   const getSubjectName = id => {
     const subj = subjects.find(s => s.id === id);
