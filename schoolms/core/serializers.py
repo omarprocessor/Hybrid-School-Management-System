@@ -80,8 +80,8 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attendance
-        fields = ['admission_no', 'student', 'classroom', 'date', 'time_in', 'time_out']
-        read_only_fields = ['student', 'classroom', 'date', 'time_in', 'time_out']
+        fields = ['id', 'admission_no', 'student', 'classroom', 'date', 'time_in', 'time_out']
+        read_only_fields = ['id', 'student', 'classroom', 'date', 'time_in', 'time_out']
 
     def create(self, validated_data):
         admission_no = validated_data.pop('admission_no')

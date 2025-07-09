@@ -101,6 +101,10 @@ class AttendanceListView(generics.ListAPIView):
             queryset = queryset.filter(date=date)
         return queryset
 
+class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerializer
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):

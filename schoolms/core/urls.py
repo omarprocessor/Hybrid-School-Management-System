@@ -32,6 +32,7 @@ urlpatterns = [
      # Attendance
     path('attendance/', views.AttendanceCreateView.as_view(), name='attendance-create'),
     path('attendance/list/', views.AttendanceListView.as_view(), name='attendance-list'),
+    path('attendance/<int:pk>/', views.AttendanceDetailView.as_view(), name='attendance-detail'),
     path('register/', views.RegistrationView.as_view(), name='register'),
     path('user-approvals/', views.UserApprovalListUpdateView.as_view(), name='user-approvals'),
     path('user-approvals/<int:pk>/', views.UserApprovalListUpdateView.as_view(), name='user-approval-detail'),
