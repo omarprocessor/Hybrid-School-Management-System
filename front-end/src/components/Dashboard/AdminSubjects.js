@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminSubjects = () => {
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState([]);
   const [form, setForm] = useState({ name: '', code: '' });
   const [editingId, setEditingId] = useState(null);
@@ -14,7 +17,7 @@ const AdminSubjects = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/subjects/`);
+      const res = await authFetch(`${API}/subjects/`);
       if (!res.ok) throw new Error('Failed to fetch subjects');
       const data = await res.json();
       setSubjects(Array.isArray(data) ? data : []);
@@ -24,7 +27,10 @@ const AdminSubjects = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchSubjects(); }, []);
+  useEffect(() => {
+    if (!user) return;
+    fetchSubjects();
+  }, [user]);
 
   // Handle form input
   const handleChange = e => {
@@ -38,7 +44,7 @@ const AdminSubjects = () => {
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${API}/subjects/${editingId}/` : `${API}/subjects/`;
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -62,7 +68,7 @@ const AdminSubjects = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this subject?')) return;
     try {
-      const res = await fetch(`${API}/subjects/${id}/`, { method: 'DELETE' });
+      const res = await authFetch(`${API}/subjects/${id}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       fetchSubjects();
     } catch (err) {
@@ -102,7 +108,7 @@ const AdminSubjects = () => {
           <tbody>
             {subjects.length === 0 ? (
               <tr><td colSpan="3">No subjects found.</td></tr>
-            ) : subjects.map(subject => (
+            ) : Array.isArray(subjects) ? subjects.map(subject => (
               <tr key={subject.id}>
                 <td>{subject.name}</td>
                 <td>{subject.code}</td>
@@ -111,7 +117,7 @@ const AdminSubjects = () => {
                   <button onClick={() => handleDelete(subject.id)} style={{ marginLeft: 8, color: 'red' }}>Delete</button>
                 </td>
               </tr>
-            ))}
+            )) : null}
           </tbody>
         </table>
       )}

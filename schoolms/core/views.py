@@ -10,7 +10,7 @@ from .serializers import (ClassRoomSerializer,
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework import mixins
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
@@ -126,6 +126,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 class RegistrationView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -203,11 +204,13 @@ class UserListView(generics.ListAPIView):
 class BlogPostListCreateView(generics.ListCreateAPIView):
     queryset = BlogPost.objects.all().order_by('-created_at')
     serializer_class = BlogPostSerializer
+    permission_classes = [AllowAny]
 
 class BlogPostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
     lookup_field = 'slug'
+    permission_classes = [AllowAny]
 
 class MarksTemplateDownloadView(APIView):
     permission_classes = [IsAuthenticated]

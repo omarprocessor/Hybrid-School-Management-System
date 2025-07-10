@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api';
 
 const AdminAttendance = () => {
+  const { user } = useAuth();
   const [attendance, setAttendance] = useState([]);
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -15,6 +18,7 @@ const AdminAttendance = () => {
 
   // Fetch all attendance records
   const fetchAttendance = async () => {
+    if (!user) return;
     setLoading(true);
     setError('');
     let url = `${API}/attendance/list/`;
@@ -23,7 +27,7 @@ const AdminAttendance = () => {
     if (filter.date) params.push(`date=${filter.date}`);
     if (params.length) url += '?' + params.join('&');
     try {
-      const res = await fetch(url);
+      const res = await authFetch(url);
       if (!res.ok) throw new Error('Failed to fetch attendance');
       const data = await res.json();
       setAttendance(Array.isArray(data) ? data : []);
@@ -33,12 +37,13 @@ const AdminAttendance = () => {
     setLoading(false);
   };
 
-  // Fetch students and classes for filters and form
+  // Fetch classes for filters and form
   useEffect(() => {
+    if (!user) return;
     fetchAttendance();
-    fetch(`${API}/classrooms/`).then(res => res.json()).then(setClasses).catch(() => setClasses([]));
+    authFetch(`${API}/classrooms/`).then(res => res.json()).then(setClasses).catch(() => setClasses([]));
     // eslint-disable-next-line
-  }, [filter]);
+  }, [user, filter]);
 
   // Handle filter changes
   const handleFilterChange = e => {
@@ -53,11 +58,12 @@ const AdminAttendance = () => {
   // Add attendance (check-in/check-out)
   const handleSubmit = async e => {
     e.preventDefault();
+    if (!user) return;
     setError('');
     setSuccess('');
     setMarking(true);
     try {
-      const res = await fetch(`${API}/attendance/`, {
+      const res = await authFetch(`${API}/attendance/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -76,10 +82,11 @@ const AdminAttendance = () => {
   // Delete attendance (if supported)
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this attendance record?')) return;
+    if (!user) return;
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`${API}/attendance/${id}/`, { method: 'DELETE' });
+      const res = await authFetch(`${API}/attendance/${id}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete attendance');
       setSuccess('Attendance deleted.');
       fetchAttendance();
@@ -118,9 +125,9 @@ const AdminAttendance = () => {
             <label>Classroom</label>
             <select name="classroom" value={filter.classroom} onChange={handleFilterChange}>
               <option value="">All</option>
-              {classes.map(c => (
+              {Array.isArray(classes) ? classes.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              )) : null}
             </select>
           </div>
           <div className="admin-students-field">

@@ -10,31 +10,33 @@ const StudentMarks = () => {
         <thead>
           <tr>
             <th>Exam</th>
-            {subjects.map(subject => (
+            {Array.isArray(subjects) ? subjects.map(subject => (
               <th key={subject.id}>{subject.name}</th>
-            ))}
+            )) : null}
             <th>Total</th>
             <th>Average</th>
             <th>Grade</th>
           </tr>
         </thead>
         <tbody>
-          {exams.length === 0 ? (
-            <tr><td colSpan={3 + subjects.length}>No exams found.</td></tr>
-          ) : exams.map(exam => {
-            const examMarks = marks.filter(mark => mark.exam === exam.id);
+          {Array.isArray(exams) && exams.length === 0 ? (
+            <tr><td colSpan={3 + (Array.isArray(subjects) ? subjects.length : 0)}>No exams found.</td></tr>
+          ) : Array.isArray(exams) ? exams.map(exam => {
+            const examMarks = Array.isArray(marks) ? marks.filter(mark => mark.exam === exam.id) : [];
             const subjectMarkMap = {};
-            examMarks.forEach(mark => {
-              subjectMarkMap[mark.subject] = mark.exam_score;
-            });
+            if (Array.isArray(examMarks)) {
+              examMarks.forEach(mark => {
+                subjectMarkMap[mark.subject] = mark.exam_score;
+              });
+            }
             // Check if all marks are missing or zero
-            const allEmpty = subjects.every(subject => {
+            const allEmpty = Array.isArray(subjects) ? subjects.every(subject => {
               const val = subjectMarkMap[subject.id];
               return val === undefined || val === 0 || val === '-' || val === null;
-            });
+            }) : true;
             if (allEmpty) return null;
-            const total = examMarks.reduce((sum, mark) => sum + (mark.exam_score || 0), 0);
-            const count = subjects.length;
+            const total = Array.isArray(examMarks) ? examMarks.reduce((sum, mark) => sum + (mark.exam_score || 0), 0) : 0;
+            const count = Array.isArray(subjects) ? subjects.length : 0;
             const average = count > 0 ? (total / count) : 0;
             let grade = 'E';
             if (average >= 80) grade = 'A';
@@ -45,15 +47,15 @@ const StudentMarks = () => {
             return (
               <tr key={exam.id}>
                 <td>{exam.name} (Term {exam.term} {exam.year})</td>
-                {subjects.map(subject => (
+                {Array.isArray(subjects) ? subjects.map(subject => (
                   <td key={subject.id}>{subjectMarkMap[subject.id] !== undefined ? subjectMarkMap[subject.id] : '-'}</td>
-                ))}
+                )) : null}
                 <td>{total}</td>
                 <td>{average.toFixed(2)}</td>
                 <td>{grade}</td>
               </tr>
             );
-          })}
+          }) : null}
         </tbody>
       </table>
     </section>

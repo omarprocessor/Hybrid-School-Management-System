@@ -27,7 +27,7 @@ const Blog = () => {
         <div className="blog-grid">
           {posts.length === 0 ? (
             <div className="blog-empty">No blog posts yet.</div>
-          ) : posts.map(post => (
+          ) : Array.isArray(posts) ? posts.map(post => (
             <div className="blog-card" key={post.slug}>
               {post.image && <img src={post.image} alt={post.title} className="blog-card-img" />}
               <div className="blog-card-body">
@@ -36,7 +36,7 @@ const Blog = () => {
                 <Link to={`/blog/${post.slug}`} className="blog-card-link">Read More</Link>
               </div>
             </div>
-          ))}
+          )) : null}
         </div>
       )}
     </div>

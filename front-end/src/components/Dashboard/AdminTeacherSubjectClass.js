@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminTeacherSubjectClass = () => {
+  const { user } = useAuth();
   const [assignments, setAssignments] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -18,7 +21,7 @@ const AdminTeacherSubjectClass = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/assignments/`);
+      const res = await authFetch(`${API}/assignments/`);
       if (!res.ok) throw new Error('Failed to fetch assignments');
       const data = await res.json();
       setAssignments(Array.isArray(data) ? data : []);
@@ -30,12 +33,13 @@ const AdminTeacherSubjectClass = () => {
 
   // Fetch teachers, subjects, and classes
   useEffect(() => {
+    if (!user) return;
     fetchAssignments();
-    fetch(`${API}/teachers/`).then(res => res.json()).then(setTeachers).catch(() => setTeachers([]));
-    fetch(`${API}/subjects/`).then(res => res.json()).then(setSubjects).catch(() => setSubjects([]));
-    fetch(`${API}/classrooms/`).then(res => res.json()).then(setClasses).catch(() => setClasses([]));
+    authFetch(`${API}/teachers/`).then(res => res.json()).then(setTeachers).catch(() => setTeachers([]));
+    authFetch(`${API}/subjects/`).then(res => res.json()).then(setSubjects).catch(() => setSubjects([]));
+    authFetch(`${API}/classrooms/`).then(res => res.json()).then(setClasses).catch(() => setClasses([]));
     // eslint-disable-next-line
-  }, []);
+  }, [user]);
 
   // Handle form input
   const handleFormChange = e => {
@@ -50,7 +54,7 @@ const AdminTeacherSubjectClass = () => {
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${API}/assignments/${editingId}/` : `${API}/assignments/`;
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -84,7 +88,7 @@ const AdminTeacherSubjectClass = () => {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`${API}/assignments/${id}/`, { method: 'DELETE' });
+      const res = await authFetch(`${API}/assignments/${id}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete assignment');
       setSuccess('Assignment deleted.');
       fetchAssignments();
@@ -116,27 +120,27 @@ const AdminTeacherSubjectClass = () => {
             <label>Teacher</label>
             <select name="teacher" value={form.teacher} onChange={handleFormChange} required>
               <option value="">Select Teacher</option>
-              {teachers.map(t => (
+              {Array.isArray(teachers) ? teachers.map(t => (
                 <option key={t.id} value={t.id}>{t.full_name || t.username}</option>
-              ))}
+              )) : null}
             </select>
           </div>
           <div className="admin-students-field">
             <label>Subject</label>
             <select name="subject" value={form.subject} onChange={handleFormChange} required>
               <option value="">Select Subject</option>
-              {subjects.map(s => (
+              {Array.isArray(subjects) ? subjects.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
+              )) : null}
             </select>
           </div>
           <div className="admin-students-field">
             <label>Classroom</label>
             <select name="classroom" value={form.classroom} onChange={handleFormChange} required>
               <option value="">Select Classroom</option>
-              {classes.map(c => (
+              {Array.isArray(classes) ? classes.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              )) : null}
             </select>
           </div>
           <div className="admin-students-actions">
@@ -162,7 +166,7 @@ const AdminTeacherSubjectClass = () => {
             <tbody>
               {assignments.length === 0 ? (
                 <tr><td colSpan="4">No assignments found.</td></tr>
-              ) : assignments.map((a, i) => (
+              ) : Array.isArray(assignments) ? assignments.map((a, i) => (
                 <tr key={a.id || i}>
                   <td>{getTeacherName(a.teacher)}</td>
                   <td>{getSubjectName(a.subject)}</td>
@@ -172,7 +176,7 @@ const AdminTeacherSubjectClass = () => {
                     <button onClick={() => handleDelete(a.id)} style={{ color: 'red' }}>Delete</button>
                   </td>
                 </tr>
-              ))}
+              )) : null}
             </tbody>
           </table>
         )}

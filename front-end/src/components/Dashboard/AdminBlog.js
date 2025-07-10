@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminBlog = () => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [form, setForm] = useState({ title: '', content: '', image: null });
   const [editingSlug, setEditingSlug] = useState(null);
@@ -16,7 +19,7 @@ const AdminBlog = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/blog/`);
+      const res = await authFetch(`${API}/blog/`);
       if (!res.ok) throw new Error('Failed to fetch blog posts');
       const data = await res.json();
       setPosts(Array.isArray(data) ? data : []);
@@ -26,7 +29,10 @@ const AdminBlog = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => {
+    if (!user) return;
+    fetchPosts();
+  }, [user]);
 
   // Handle form input
   const handleChange = e => {
@@ -54,7 +60,7 @@ const AdminBlog = () => {
         url = `${API}/blog/${editingSlug}/`;
         method = 'PUT';
       }
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         body: formData
       });
@@ -82,7 +88,7 @@ const AdminBlog = () => {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch(`${API}/blog/${slug}/`, { method: 'DELETE' });
+      const res = await authFetch(`${API}/blog/${slug}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setSuccess('Blog post deleted.');
       fetchPosts();
@@ -130,7 +136,7 @@ const AdminBlog = () => {
           <tbody>
             {posts.length === 0 ? (
               <tr><td colSpan="5">No blog posts found.</td></tr>
-            ) : posts.map(post => (
+            ) : Array.isArray(posts) ? posts.map(post => (
               <tr key={post.slug}>
                 <td>{post.image && <img src={post.image} alt={post.title} style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 6 }} />}</td>
                 <td>{post.title}</td>
@@ -141,7 +147,7 @@ const AdminBlog = () => {
                   <button onClick={() => handleDelete(post.slug)} style={{ marginLeft: 8, color: 'red' }}>Delete</button>
                 </td>
               </tr>
-            ))}
+            )) : null}
           </tbody>
         </table>
       )}

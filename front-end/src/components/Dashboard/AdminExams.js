@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminExams = () => {
+  const { user } = useAuth();
   const [exams, setExams] = useState([]);
   const [form, setForm] = useState({ name: '', term: '', year: '', start_date: '' });
   const [editingId, setEditingId] = useState(null);
@@ -14,7 +17,7 @@ const AdminExams = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API}/exams/`);
+      const res = await authFetch(`${API}/exams/`);
       if (!res.ok) throw new Error('Failed to fetch exams');
       const data = await res.json();
       setExams(Array.isArray(data) ? data : []);
@@ -24,7 +27,10 @@ const AdminExams = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchExams(); }, []);
+  useEffect(() => {
+    if (!user) return;
+    fetchExams();
+  }, [user]);
 
   // Handle form input
   const handleChange = e => {
@@ -42,7 +48,7 @@ const AdminExams = () => {
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${API}/exams/${editingId}/` : `${API}/exams/`;
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -66,7 +72,7 @@ const AdminExams = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this exam?')) return;
     try {
-      const res = await fetch(`${API}/exams/${id}/`, { method: 'DELETE' });
+      const res = await authFetch(`${API}/exams/${id}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       fetchExams();
     } catch (err) {
@@ -116,7 +122,7 @@ const AdminExams = () => {
           <tbody>
             {exams.length === 0 ? (
               <tr><td colSpan="5">No exams found.</td></tr>
-            ) : exams.map(exam => (
+            ) : Array.isArray(exams) ? exams.map(exam => (
               <tr key={exam.id}>
                 <td>{exam.name}</td>
                 <td>{exam.term}</td>
@@ -127,7 +133,7 @@ const AdminExams = () => {
                   <button onClick={() => handleDelete(exam.id)} style={{ marginLeft: 8, color: 'red' }}>Delete</button>
                 </td>
               </tr>
-            ))}
+            )) : null}
           </tbody>
         </table>
       )}

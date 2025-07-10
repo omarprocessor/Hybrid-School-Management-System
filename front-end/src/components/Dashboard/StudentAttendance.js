@@ -18,14 +18,14 @@ const StudentAttendance = () => {
         <tbody>
           {attendance.length === 0 ? (
             <tr><td colSpan="4">No attendance records found.</td></tr>
-          ) : attendance.map((att, i) => (
+          ) : Array.isArray(attendance) ? attendance.map((att, i) => (
             <tr key={i}>
               <td>{att.date}</td>
               <td>{att.time_in}</td>
               <td>{att.time_out}</td>
               <td>{att.classroom}</td>
             </tr>
-          ))}
+          )) : null}
         </tbody>
       </table>
     </section>

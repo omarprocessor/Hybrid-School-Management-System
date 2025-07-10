@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
+import { authFetch } from '../../utils';
 
 const API = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api';
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [teacherId, setTeacherId] = useState(null);
   const [assignments, setAssignments] = useState([]);
@@ -27,57 +28,39 @@ const TeacherDashboard = () => {
   const fileInputRef = useRef();
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
-    fetch(`${API}/me/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    if (!user) return;
+    authFetch(`${API}/me/`)
       .then(res => {
         if (!res.ok) throw new Error('Could not fetch profile');
         return res.json();
       })
       .then(data => setProfile(data))
       .catch(err => setError(err.message));
-  }, []);
+  }, [user]);
 
   // Fetch teacherId after profile is loaded
   useEffect(() => {
-    if (!profile) return;
-    const token = localStorage.getItem('access');
-    fetch(`${API}/teachers/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    if (!user || !profile) return;
+    authFetch(`${API}/teachers/`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         const teacher = data.find(t => t.user === profile.id);
         setTeacherId(teacher ? teacher.id : null);
       })
       .catch(() => setTeacherId(null));
-  }, [profile]);
+  }, [user, profile]);
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
-    fetch(`${API}/assignments/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setAssignments(data))
-      .catch(() => setAssignments([]));
-    fetch(`${API}/subjects/`)
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setSubjects(data))
-      .catch(() => setSubjects([]));
-    fetch(`${API}/classrooms/`)
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setClasses(data))
-      .catch(() => setClasses([]));
-  }, []);
+    if (!user) return;
+    authFetch(`${API}/assignments/`).then(res => res.ok ? res.json() : []).then(setAssignments).catch(() => setAssignments([]));
+    authFetch(`${API}/subjects/`).then(res => res.ok ? res.json() : []).then(setSubjects).catch(() => setSubjects([]));
+    authFetch(`${API}/classrooms/`).then(res => res.ok ? res.json() : []).then(setClasses).catch(() => setClasses([]));
+  }, [user]);
 
   useEffect(() => {
-    fetch(`${API}/exams/`)
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setExams(data))
-      .catch(() => setExams([]));
-  }, []);
+    if (!user) return;
+    authFetch(`${API}/exams/`).then(res => res.ok ? res.json() : []).then(setExams).catch(() => setExams([]));
+  }, [user]);
 
   // Filter assignments for this teacher (by teacher id)
   const teacherAssignments = teacherId
@@ -91,31 +74,19 @@ const TeacherDashboard = () => {
 
   // Fetch class attendance for class teacher
   useEffect(() => {
-    const token = localStorage.getItem('access');
-    fetch(`${API}/my-class-attendance/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setClassAttendance(Array.isArray(data) ? data : []))
-      .catch(() => setClassAttendance([]));
-  }, [teacherId]);
+    if (!user || !teacherId) return;
+    authFetch(`${API}/my-class-attendance/`).then(res => res.ok ? res.json() : []).then(data => setClassAttendance(Array.isArray(data) ? data : [])).catch(() => setClassAttendance([]));
+  }, [user, teacherId]);
 
   // Fetch students in the class if classTeacherOf exists
   useEffect(() => {
-    if (classTeacherOf.length === 0) return;
-    const token = localStorage.getItem('access');
+    if (!user || classTeacherOf.length === 0) return;
     // Assume only one class for class teacher
     const classId = classTeacherOf[0].id;
-    fetch(`${API}/students/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        // Filter students by classroom
-        setStudentsInClass(data.filter(s => s.classroom === classId));
-      })
-      .catch(() => setStudentsInClass([]));
-  }, [classTeacherOf]);
+    authFetch(`${API}/students/`).then(res => res.ok ? res.json() : []).then(data => {
+      setStudentsInClass(data.filter(s => s.classroom === classId));
+    }).catch(() => setStudentsInClass([]));
+  }, [user, classTeacherOf]);
 
   // Mark attendance (check-in/check-out)
   const markAttendance = (admission_no) => {
@@ -242,9 +213,9 @@ const TeacherDashboard = () => {
         <section className="student-marks-section">
           <h2>Class Teacher For</h2>
           <ul>
-            {classTeacherOf.map(c => (
+            {Array.isArray(classTeacherOf) ? classTeacherOf.map(c => (
               <li key={c.id}>{c.name}</li>
-            ))}
+            )) : null}
           </ul>
         </section>
       )}
@@ -261,7 +232,7 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {classAttendance.length === 0 ? (
+              {Array.isArray(classAttendance) ? classAttendance.length === 0 ? (
                 <tr><td colSpan="4">No attendance records found.</td></tr>
               ) : classAttendance.map((att, i) => (
                 <tr key={i}>
@@ -270,7 +241,7 @@ const TeacherDashboard = () => {
                   <td>{att.time_in}</td>
                   <td>{att.time_out}</td>
                 </tr>
-              ))}
+              )) : null}
             </tbody>
           </table>
         </section>
@@ -289,7 +260,7 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {studentsInClass.length === 0 ? (
+              {Array.isArray(studentsInClass) ? studentsInClass.length === 0 ? (
                 <tr><td colSpan="3">No students found in your class.</td></tr>
               ) : studentsInClass.map(s => (
                 <tr key={s.id}>
@@ -299,7 +270,7 @@ const TeacherDashboard = () => {
                     <button onClick={() => markAttendance(s.admission_no)} disabled={attendanceLoading}>Mark Attendance</button>
                   </td>
                 </tr>
-              ))}
+              )) : null}
             </tbody>
           </table>
         </section>
@@ -311,16 +282,16 @@ const TeacherDashboard = () => {
             <label>Exam: </label>
             <select value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
               <option value="">Select Exam</option>
-              {exams.map(e => (
+              {Array.isArray(exams) ? exams.map(e => (
                 <option key={e.id} value={e.id}>{e.name} ({e.term} {e.year})</option>
-              ))}
+              )) : null}
             </select>
             <label style={{ marginLeft: 16 }}>Class: </label>
             <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
               <option value="">Select Class</option>
-              {classTeacherOf.map(c => (
+              {Array.isArray(classTeacherOf) ? classTeacherOf.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              )) : null}
             </select>
             <button style={{ marginLeft: 16 }} onClick={handleDownloadTemplate}>Download Template</button>
           </div>
@@ -343,14 +314,14 @@ const TeacherDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {teacherAssignments.length === 0 ? (
+            {Array.isArray(teacherAssignments) ? teacherAssignments.length === 0 ? (
               <tr><td colSpan="2">No assignments found.</td></tr>
             ) : teacherAssignments.map(a => (
               <tr key={a.id}>
                 <td>{getSubjectName(a.subject)}</td>
                 <td>{getClassName(a.classroom)}</td>
               </tr>
-            ))}
+            )) : null}
           </tbody>
         </table>
       </section>

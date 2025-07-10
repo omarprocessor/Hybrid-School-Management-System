@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminStudents = () => {
+  const { user } = useAuth();
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [form, setForm] = useState({ full_name: '', admission_no: '', gender: '', classroom: '', parent_phone: '', profile_pic: null });
@@ -11,16 +14,17 @@ const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/students/`)
+    if (!user) return;
+    authFetch(`${API}/students/`)
       .then(res => res.ok ? res.json() : [])
       .then(data => setStudents(data))
       .catch(() => setStudents([]));
-    fetch(`${API}/classrooms/`)
+    authFetch(`${API}/classrooms/`)
       .then(res => res.ok ? res.json() : [])
       .then(data => setClasses(data))
       .catch(() => setClasses([]));
     setLoading(false);
-  }, []);
+  }, [user]);
 
   const getClassName = id => {
     const cls = classes.find(c => c.id === id);
@@ -44,7 +48,7 @@ const AdminStudents = () => {
     Object.entries(form).forEach(([key, value]) => {
       if (value !== null && value !== undefined) formData.append(key, value);
     });
-    fetch(url, {
+    authFetch(url, {
       method,
       body: formData
     })
@@ -73,7 +77,7 @@ const AdminStudents = () => {
   };
 
   const handleDelete = id => {
-    fetch(`${API}/students/${id}/`, { method: 'DELETE' })
+    authFetch(`${API}/students/${id}/`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) setStudents(students.filter(s => s.id !== id));
       });

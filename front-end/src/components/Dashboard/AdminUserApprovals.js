@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils';
+import { useAuth } from '../../AuthContext';
 
 const API = process.env.REACT_APP_API_BASE_URL;
 
 const AdminUserApprovals = () => {
+  const { user } = useAuth();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -15,10 +18,7 @@ const AdminUserApprovals = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('access');
-      const res = await fetch(`${API}/user-approvals/`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await authFetch(`${API}/user-approvals/`);
       if (!res.ok) throw new Error('Failed to fetch pending users');
       const data = await res.json();
       setPendingUsers(data);
@@ -30,7 +30,7 @@ const AdminUserApprovals = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`${API}/students/`);
+      const res = await authFetch(`${API}/students/`);
       if (!res.ok) throw new Error('Failed to fetch students');
       const data = await res.json();
       setStudents(data);
@@ -39,14 +39,19 @@ const AdminUserApprovals = () => {
 
   const fetchTeachers = async () => {
     try {
-      const res = await fetch(`${API}/teachers/`);
+      const res = await authFetch(`${API}/teachers/`);
       if (!res.ok) throw new Error('Failed to fetch teachers');
       const data = await res.json();
       setTeachers(data);
     } catch {}
   };
 
-  useEffect(() => { fetchPendingUsers(); fetchStudents(); fetchTeachers(); }, []);
+  useEffect(() => {
+    if (!user) return;
+    fetchPendingUsers();
+    fetchStudents();
+    fetchTeachers();
+  }, [user]);
 
   const handleMappingChange = (userId, value) => {
     setMapping({ ...mapping, [userId]: value });
@@ -93,10 +98,10 @@ const AdminUserApprovals = () => {
             </tr>
           </thead>
           <tbody>
-            {pendingUsers.length === 0 && (
+            {Array.isArray(pendingUsers) && pendingUsers.length === 0 && (
               <tr><td colSpan={5}>No pending users.</td></tr>
             )}
-            {pendingUsers.map(user => (
+            {Array.isArray(pendingUsers) ? pendingUsers.map(user => (
               <tr key={user.id}>
                 <td>{user.username}</td>
                 <td>{user.email}</td>
@@ -105,16 +110,16 @@ const AdminUserApprovals = () => {
                   {user.requested_role === 'student' ? (
                     <select value={mapping[user.id] || ''} onChange={e => handleMappingChange(user.id, e.target.value)}>
                       <option value="">Select Student</option>
-                      {students.map(s => (
+                      {Array.isArray(students) ? students.map(s => (
                         <option key={s.id} value={s.id}>{s.full_name} ({s.admission_no})</option>
-                      ))}
+                      )) : null}
                     </select>
                   ) : user.requested_role === 'teacher' ? (
                     <select value={mapping[user.id] || ''} onChange={e => handleMappingChange(user.id, e.target.value)}>
                       <option value="">Select Teacher</option>
-                      {teachers.map(t => (
+                      {Array.isArray(teachers) ? teachers.map(t => (
                         <option key={t.id} value={t.id}>{t.full_name}</option>
-                      ))}
+                      )) : null}
                     </select>
                   ) : null}
                 </td>
@@ -124,7 +129,7 @@ const AdminUserApprovals = () => {
                   </button>
                 </td>
               </tr>
-            ))}
+            )) : null}
           </tbody>
         </table>
       )}
