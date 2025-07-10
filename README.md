@@ -1,6 +1,6 @@
 # 🏫 Hybrid School Management System
 
-A full-featured school management platform with both **public-facing pages** and a **secure internal dashboard** for students, teachers, staff, and administrators. It features **fingerprint-based attendance logging** with real-time **SMS notifications** and a smooth user experience across web and mobile devices.
+A full-featured school management platform with both **public-facing pages** and a **secure internal dashboard** for students, teachers, and administrators. It features **fingerprint-based attendance logging** with real-time **SMS notifications** (via Africastalking) and a smooth user experience, especially on desktop devices.
 
 ---
 
@@ -15,12 +15,11 @@ A full-featured school management platform with both **public-facing pages** and
   - Student: View grades, attendance, profile, announcements
   - Teacher: Manage marks, attendance, assigned classes/subjects, CSV upload for marks
   - Admin: Manage students, teachers, classes, subjects, exams, marks, attendance, user approvals, blog
-  - Staff: (Extendable for future features)
 - **Fingerprint Attendance System:**
   - Hardware-based attendance logging (UART fingerprint module)
-  - Real-time SMS alerts to parents when a student arrives
+  - Real-time SMS alerts to parents when a student arrives (Africastalking)
 - **SMS Notifications:**
-  - Alerts for attendance and when results are uploaded
+  - Alerts for attendance and when results are uploaded (Africastalking only)
 - **Student Management:**
   - Registration, approval workflow, profile management
 - **Class & Subject Management:**
@@ -32,13 +31,13 @@ A full-featured school management platform with both **public-facing pages** and
 - **Blog System:**
   - Admin can post news/announcements, public can view
 - **Responsive Design:**
-  - Works on desktop and mobile
+  - Optimized for desktop; basic mobile support
 - **Secure JWT Authentication:**
   - Access/refresh tokens, role-based access
-- **Cloud Media Storage:**
-  - Profile pictures, blog images
-- **Deployment Ready:**
-  - Render/Railway, Google OAuth, CORS support
+- **Local Media Storage:**
+  - Profile pictures, blog images stored locally (not in the cloud)
+- **CORS Support:**
+  - For React frontend integration
 
 ---
 
@@ -59,10 +58,7 @@ A full-featured school management platform with both **public-facing pages** and
 - Serial communication
 
 **Third-party Services:**
-- Africastalking / Twilio (for SMS)
-- Cloudinary (media storage)
-- Render / Railway (deployment)
-- Google OAuth (authentication)
+- Africastalking (for SMS)
 
 ---
 
