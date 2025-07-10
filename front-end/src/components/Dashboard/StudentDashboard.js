@@ -66,7 +66,7 @@ useEffect(() => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   }
 
   if (error) return <div className="student-dashboard-error">{error}</div>
