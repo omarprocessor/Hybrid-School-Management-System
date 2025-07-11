@@ -115,3 +115,7 @@ All endpoints are prefixed with `/api/` (if using the default Django setup). Aut
 **Note:** Some endpoints may require admin or specific role permissions. See the code for detailed permission logic.
 
 ---
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

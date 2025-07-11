@@ -87,4 +87,4 @@ This system uses an ESP8266 microcontroller and a fingerprint sensor to automate
 
 ## 📄 License
 
-MIT 
+This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details. 
