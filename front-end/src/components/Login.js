@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import Header from './Header';
+import Footer from './Footer';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -35,30 +37,36 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>Login</button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {pending && <p style={{ color: 'orange' }}>Your account is pending admin approval. Please wait.</p>}
-      <p style={{ marginTop: 20 }}>
-        Don&apos;t have an account? <a href="/register">Register here</a>
-      </p>
+    <div className="page-container">
+      <Header />
+      <div className="page-content">
+        <div className="login-container">
+          <h2>Login</h2>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <button type="submit" disabled={loading}>Login</button>
+          </form>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+          {pending && <p style={{ color: 'orange' }}>Your account is pending admin approval. Please wait.</p>}
+          <p style={{ marginTop: 20 }}>
+            Don&apos;t have an account? <a href="/register">Register here</a>
+          </p>
+        </div>
+      </div>
+      <Footer />
     </div>
   );
 };

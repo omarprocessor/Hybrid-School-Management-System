@@ -129,8 +129,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Africa's Talking settings
-AFRICASTALKING_USERNAME = ''
-AFRICASTALKING_API_KEY = ''
+AFRICASTALKING_USERNAME = 'elprocessorIOT'
+AFRICASTALKING_API_KEY = 'atsk_299525d8c4f0f786e52b5146a6dfd8de384881ac9169ea1e75c7d00dd397ed4bae12e70a'
 
 TIME_ZONE = 'Africa/Nairobi'
 USE_TZ = True  
@@ -140,6 +140,18 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     "http://192.168.0.168:3000",
     
+]
+
+# Allow credentials and headers for media file access
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_HEADERS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 REST_FRAMEWORK = {

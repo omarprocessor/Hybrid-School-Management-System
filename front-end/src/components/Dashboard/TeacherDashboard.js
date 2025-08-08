@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { authFetch } from '../../utils';
+import './TeacherDashboard.css';
 
 const API = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -17,7 +18,7 @@ const TeacherDashboard = () => {
   const [classAttendance, setClassAttendance] = useState([]);
   const [studentsInClass, setStudentsInClass] = useState([]);
   const [attendanceMsg, setAttendanceMsg] = useState('');
-  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [attendanceLoading, setAttendanceLoading] = useState({});
   const [exams, setExams] = useState([]);
   const [selectedExam, setSelectedExam] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -28,7 +29,12 @@ const TeacherDashboard = () => {
   const fileInputRef = useRef();
 
   useEffect(() => {
-    if (!user) return;
+    // Since this component is wrapped in ProtectedRoute, user should always exist
+    if (!user || user.role !== 'teacher') {
+      navigate('/login');
+      return;
+    }
+    
     authFetch(`${API}/me/`)
       .then(res => {
         if (!res.ok) throw new Error('Could not fetch profile');
@@ -36,7 +42,7 @@ const TeacherDashboard = () => {
       })
       .then(data => setProfile(data))
       .catch(err => setError(err.message));
-  }, [user]);
+  }, [user, navigate]);
 
   // Fetch teacherId after profile is loaded
   useEffect(() => {
@@ -44,17 +50,62 @@ const TeacherDashboard = () => {
     authFetch(`${API}/teachers/`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
-        const teacher = data.find(t => t.user === profile.id);
-        setTeacherId(teacher ? teacher.id : null);
+        let teacher = data.find(t => t.user === profile.id);
+        
+        // If user is approved as teacher but no Teacher record exists, create one
+        if (!teacher && profile.role === 'teacher' && profile.is_approved) {
+          console.log('Creating Teacher record for approved teacher user');
+          authFetch(`${API}/teachers/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user: profile.id,
+              full_name: profile.username
+            })
+          })
+          .then(res => res.ok ? res.json() : null)
+          .then(newTeacher => {
+            if (newTeacher) {
+              console.log('Created new Teacher record:', newTeacher);
+              setTeacherId(newTeacher.id);
+            }
+          })
+          .catch(err => {
+            console.error('Failed to create Teacher record:', err);
+          });
+        } else {
+          setTeacherId(teacher ? teacher.id : null);
+        }
       })
-      .catch(() => setTeacherId(null));
+      .catch(err => {
+        console.error('Teachers API error:', err);
+        setTeacherId(null);
+      });
   }, [user, profile]);
 
   useEffect(() => {
     if (!user) return;
-    authFetch(`${API}/assignments/`).then(res => res.ok ? res.json() : []).then(setAssignments).catch(() => setAssignments([]));
-    authFetch(`${API}/subjects/`).then(res => res.ok ? res.json() : []).then(setSubjects).catch(() => setSubjects([]));
-    authFetch(`${API}/classrooms/`).then(res => res.ok ? res.json() : []).then(setClasses).catch(() => setClasses([]));
+    authFetch(`${API}/assignments/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setAssignments(data))
+      .catch(err => {
+        console.error('Assignments API error:', err);
+        setAssignments([]);
+      });
+    authFetch(`${API}/subjects/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setSubjects(data))
+      .catch(err => {
+        console.error('Subjects API error:', err);
+        setSubjects([]);
+      });
+    authFetch(`${API}/classrooms/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setClasses(data))
+      .catch(err => {
+        console.error('Classes API error:', err);
+        setClasses([]);
+      });
   }, [user]);
 
   useEffect(() => {
@@ -64,18 +115,21 @@ const TeacherDashboard = () => {
 
   // Filter assignments for this teacher (by teacher id)
   const teacherAssignments = teacherId
-    ? assignments.filter(a => a.teacher === teacherId)
+    ? assignments.filter(a => parseInt(a.teacher) === parseInt(teacherId) || a.teacher === teacherId)
     : [];
 
   // Find classes where this teacher is the class teacher
   const classTeacherOf = teacherId && classes.length > 0
-    ? classes.filter(c => c.class_teacher && c.class_teacher.id === teacherId)
+    ? classes.filter(c => c.class_teacher && (parseInt(c.class_teacher.id) === parseInt(teacherId) || c.class_teacher.id === teacherId))
     : [];
 
   // Fetch class attendance for class teacher
   useEffect(() => {
     if (!user || !teacherId) return;
-    authFetch(`${API}/my-class-attendance/`).then(res => res.ok ? res.json() : []).then(data => setClassAttendance(Array.isArray(data) ? data : [])).catch(() => setClassAttendance([]));
+    authFetch(`${API}/my-class-attendance/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setClassAttendance(Array.isArray(data) ? data : []))
+      .catch(() => setClassAttendance([]));
   }, [user, teacherId]);
 
   // Fetch students in the class if classTeacherOf exists
@@ -83,248 +137,497 @@ const TeacherDashboard = () => {
     if (!user || classTeacherOf.length === 0) return;
     // Assume only one class for class teacher
     const classId = classTeacherOf[0].id;
-    authFetch(`${API}/students/`).then(res => res.ok ? res.json() : []).then(data => {
-      setStudentsInClass(data.filter(s => s.classroom === classId));
-    }).catch(() => setStudentsInClass([]));
+    authFetch(`${API}/students/`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        setStudentsInClass(data.filter(s => parseInt(s.classroom) === parseInt(classId) || s.classroom === classId));
+      })
+      .catch(() => setStudentsInClass([]));
   }, [user, classTeacherOf]);
 
-  // Mark attendance (check-in/check-out)
-  const markAttendance = (admission_no) => {
-    setAttendanceLoading(true);
+  // Mark attendance for a specific student
+  const markAttendance = async (admission_no, studentName) => {
+    if (!admission_no) {
+      setAttendanceMsg('Please provide a valid admission number.');
+      return;
+    }
+    
+    setAttendanceLoading(prev => ({ ...prev, [admission_no]: true }));
     setAttendanceMsg('');
-    const token = localStorage.getItem('access');
-    fetch(`${API}/attendance/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ admission_no })
-    })
-      .then(res => res.json().then(data => ({ ok: res.ok, data })))
-      .then(({ ok, data }) => {
-        setAttendanceLoading(false);
-        if (ok) {
-          setAttendanceMsg('Attendance marked successfully!');
-        } else {
-          setAttendanceMsg(data.detail || 'Failed to mark attendance.');
-        }
-      })
-      .catch(() => {
-        setAttendanceLoading(false);
-        setAttendanceMsg('Failed to mark attendance.');
+    
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch(`${API}/attendance/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ admission_no })
       });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAttendanceMsg(`${studentName} - Attendance marked successfully!`);
+        // Refresh attendance data
+        authFetch(`${API}/my-class-attendance/`)
+          .then(res => res.ok ? res.json() : [])
+          .then(data => setClassAttendance(Array.isArray(data) ? data : []))
+          .catch(() => setClassAttendance([]));
+      } else {
+        setAttendanceMsg(`${studentName} - ${data.detail || data.error || 'Failed to mark attendance.'}`);
+      }
+    } catch (error) {
+      setAttendanceMsg(`${studentName} - Network error. Please try again.`);
+    } finally {
+      setAttendanceLoading(prev => ({ ...prev, [admission_no]: false }));
+    }
   };
 
-  const handleDownloadTemplate = () => {
+  // Get attendance status for a student
+  const getStudentAttendanceStatus = (student) => {
+    const today = new Date().toISOString().split('T')[0];
+    const studentAttendance = classAttendance.filter(att => 
+      att.student === student.full_name && att.date === today
+    );
+    
+    if (studentAttendance.length === 0) {
+      return { status: 'Not Marked', className: 'absent' };
+    }
+    
+    const latestAttendance = studentAttendance[studentAttendance.length - 1];
+    if (latestAttendance.time_out) {
+      return { status: 'Present', className: 'present' };
+    } else {
+      return { status: 'Checked In', className: 'late' };
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
     if (!selectedExam || !selectedClass) {
       setCsvStatus('Please select both exam and class.');
       return;
     }
+    
     setCsvStatus('');
-    const token = localStorage.getItem('access');
-    fetch(`${API}/marks/template/?exam=${selectedExam}&classroom=${selectedClass}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to download template');
-        return res.blob();
-      })
-      .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'marks_template.csv';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch(() => setCsvStatus('Failed to download template.'));
+    setUploadError('');
+    
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch(`${API}/marks/template/?exam=${selectedExam}&classroom=${selectedClass}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download template');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'marks_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setCsvStatus('Template downloaded successfully!');
+    } catch (error) {
+      setCsvStatus('Failed to download template. Please try again.');
+    }
   };
 
-  const handleCsvUpload = e => {
+  const handleCsvUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
     if (!selectedExam || !selectedClass) {
       setCsvStatus('Please select both exam and class before uploading.');
       return;
     }
+    
+    // Validate file type
+    if (!file.name.endsWith('.csv')) {
+      setCsvStatus('Please select a valid CSV file.');
+      return;
+    }
+    
+    setUploading(true);
     setCsvStatus('Uploading...');
     setCsvErrors([]);
-    const token = localStorage.getItem('access');
-    const formData = new FormData();
-    formData.append('exam', selectedExam);
-    formData.append('classroom', selectedClass);
-    formData.append('file', file);
-    fetch(`${API}/marks/upload/`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: formData
-    })
-      .then(res => res.json().then(data => ({ ok: res.ok, data })))
-      .then(({ ok, data }) => {
-        if (ok) {
-          setCsvStatus(`Upload successful. Created: ${data.created}, Updated: ${data.updated}`);
-          setCsvErrors(data.errors || []);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-        } else {
-          setCsvStatus('Upload failed.');
-          setCsvErrors(data.errors || [data.detail || 'Unknown error']);
-        }
-      })
-      .catch(() => setCsvStatus('Upload failed.'));
+    setUploadError('');
+    
+    try {
+      const token = localStorage.getItem('access');
+      const formData = new FormData();
+      formData.append('exam', selectedExam);
+      formData.append('classroom', selectedClass);
+      formData.append('file', file);
+      
+      const response = await fetch(`${API}/marks/upload/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setCsvStatus(`Upload successful! Created: ${data.created}, Updated: ${data.updated}`);
+        setCsvErrors(data.errors || []);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } else {
+        setCsvStatus('Upload failed.');
+        setCsvErrors(data.errors || [data.detail || 'Unknown error']);
+      }
+    } catch (error) {
+      setCsvStatus('Upload failed. Network error.');
+      setUploadError('Network error occurred during upload.');
+    } finally {
+      setUploading(false);
+    }
   };
-
-  // Remove all profile picture upload and display logic
 
   const getSubjectName = id => {
     const subj = subjects.find(s => s.id === id);
     return subj ? subj.name : id;
   };
+  
   const getClassName = id => {
     const cls = classes.find(c => c.id === id);
     return cls ? cls.name : id;
   };
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    window.location.href = '/';
   };
 
-  if (error) return <div className="student-dashboard-error">{error}</div>;
-  if (!profile) return <div className="student-dashboard-loading">Loading...</div>;
+  if (error) {
+    return (
+      <div className="teacher-dashboard-layout">
+        <div className="teacher-main-content">
+          <div className="teacher-alert error">
+            Error: {error}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="teacher-dashboard-layout">
+        <div className="teacher-main-content">
+          <div className="teacher-loading">
+            Loading teacher profile...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="student-dashboard-container">
-      <button className="student-logout-btn" onClick={handleLogout}>Logout</button>
-      <h1 className="student-dashboard-title">👨‍🏫 Teacher Dashboard</h1>
-      <section className="student-profile-section">
-        <h2>Profile</h2>
-        <table className="student-profile-table">
-          <tbody>
-            <tr><th>Username</th><td>{profile.username}</td></tr>
-            <tr><th>Email</th><td>{profile.email}</td></tr>
-            <tr><th>Role</th><td>{profile.role}</td></tr>
-          </tbody>
-        </table>
-      </section>
-      {classTeacherOf.length > 0 && (
-        <section className="student-marks-section">
-          <h2>Class Teacher For</h2>
-          <ul>
-            {Array.isArray(classTeacherOf) ? classTeacherOf.map(c => (
-              <li key={c.id}>{c.name}</li>
-            )) : null}
-          </ul>
-        </section>
-      )}
-      {classTeacherOf.length > 0 && (
-        <section className="student-marks-section">
-          <h2>Class Attendance</h2>
-          <table className="student-marks-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Date</th>
-                <th>Time In</th>
-                <th>Time Out</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(classAttendance) ? classAttendance.length === 0 ? (
-                <tr><td colSpan="4">No attendance records found.</td></tr>
-              ) : classAttendance.map((att, i) => (
-                <tr key={i}>
-                  <td>{att.student}</td>
-                  <td>{att.date}</td>
-                  <td>{att.time_in}</td>
-                  <td>{att.time_out}</td>
-                </tr>
-              )) : null}
-            </tbody>
-          </table>
-        </section>
-      )}
-      {classTeacherOf.length > 0 && (
-        <section className="student-marks-section">
-          <h2>Mark Attendance</h2>
-          {attendanceMsg && <div style={{ color: attendanceMsg.includes('success') ? 'green' : 'red' }}>{attendanceMsg}</div>}
-          {attendanceLoading && <div>Marking attendance...</div>}
-          <table className="student-marks-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Admission No</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(studentsInClass) ? studentsInClass.length === 0 ? (
-                <tr><td colSpan="3">No students found in your class.</td></tr>
-              ) : studentsInClass.map(s => (
-                <tr key={s.id}>
-                  <td>{s.full_name}</td>
-                  <td>{s.admission_no}</td>
-                  <td>
-                    <button onClick={() => markAttendance(s.admission_no)} disabled={attendanceLoading}>Mark Attendance</button>
-                  </td>
-                </tr>
-              )) : null}
-            </tbody>
-          </table>
-        </section>
-      )}
-      {classTeacherOf.length > 0 && (
-        <section className="student-marks-section">
-          <h2>Exam Results (CSV Upload)</h2>
-          <div style={{ marginBottom: 12 }}>
-            <label>Exam: </label>
-            <select value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
-              <option value="">Select Exam</option>
-              {Array.isArray(exams) ? exams.map(e => (
-                <option key={e.id} value={e.id}>{e.name} ({e.term} {e.year})</option>
-              )) : null}
-            </select>
-            <label style={{ marginLeft: 16 }}>Class: </label>
-            <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
-              <option value="">Select Class</option>
-              {Array.isArray(classTeacherOf) ? classTeacherOf.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              )) : null}
-            </select>
-            <button style={{ marginLeft: 16 }} onClick={handleDownloadTemplate}>Download Template</button>
+    <div className="teacher-dashboard-layout">
+      <aside className="teacher-sidebar">
+        <h2 className="teacher-sidebar-title">Teacher Dashboard</h2>
+        <nav className="teacher-sidebar-nav">
+          <button className="teacher-btn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            Dashboard Overview
+          </button>
+          <button className="teacher-btn" onClick={() => document.getElementById('attendance-section')?.scrollIntoView({ behavior: 'smooth' })}>
+            Mark Attendance
+          </button>
+          <button className="teacher-btn" onClick={() => document.getElementById('marks-section')?.scrollIntoView({ behavior: 'smooth' })}>
+            Upload Marks
+          </button>
+          <button className="teacher-btn" onClick={() => document.getElementById('assignments-section')?.scrollIntoView({ behavior: 'smooth' })}>
+            My Assignments
+          </button>
+        </nav>
+        <button className="teacher-logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+      </aside>
+
+      <main className="teacher-main-content">
+        <div className="teacher-dashboard-container">
+          <div className="teacher-dashboard-header">
+            <h1>Welcome, {profile.username}</h1>
+            <p>Manage your classes, mark attendance, and upload student marks</p>
           </div>
-          <div style={{ marginBottom: 12 }}>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleCsvUpload} />
+
+          {/* Teacher Stats */}
+          <div className="teacher-stats">
+            <div className="teacher-stat-card">
+              <span className="teacher-stat-number">{teacherAssignments.length}</span>
+              <span className="teacher-stat-label">Active Assignments</span>
+            </div>
+            <div className="teacher-stat-card">
+              <span className="teacher-stat-number">{classTeacherOf.length}</span>
+              <span className="teacher-stat-label">Class Teacher Of</span>
+            </div>
+            <div className="teacher-stat-card">
+              <span className="teacher-stat-number">{studentsInClass.length}</span>
+              <span className="teacher-stat-label">Students in Class</span>
+            </div>
+            <div className="teacher-stat-card">
+              <span className="teacher-stat-number">{exams.length}</span>
+              <span className="teacher-stat-label">Available Exams</span>
+            </div>
           </div>
-          {csvStatus && <div style={{ color: csvStatus.includes('success') ? 'green' : 'red' }}>{csvStatus}</div>}
-          {csvErrors.length > 0 && (
-            <ul style={{ color: 'red' }}>{csvErrors.map((err, i) => <li key={i}>{err}</li>)}</ul>
-          )}
-        </section>
-      )}
-      <section className="student-marks-section">
-        <h2>Assigned Subjects & Classes</h2>
-        <table className="student-marks-table">
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th>Class</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(teacherAssignments) ? teacherAssignments.length === 0 ? (
-              <tr><td colSpan="2">No assignments found.</td></tr>
-            ) : teacherAssignments.map(a => (
-              <tr key={a.id}>
-                <td>{getSubjectName(a.subject)}</td>
-                <td>{getClassName(a.classroom)}</td>
-              </tr>
-            )) : null}
-          </tbody>
-        </table>
-      </section>
+
+          {/* Attendance Section */}
+          <div id="attendance-section" className="teacher-section">
+            <h2>Mark Attendance</h2>
+            {classTeacherOf.length > 0 ? (
+              <div>
+                {attendanceMsg && (
+                  <div className={`teacher-alert ${attendanceMsg.includes('successfully') ? 'success' : 'error'}`}>
+                    {attendanceMsg}
+                  </div>
+                )}
+
+                <div className="teacher-card">
+                  <div className="teacher-card-header">
+                    <h3 className="teacher-card-title">Class Students Attendance</h3>
+                    <span className="teacher-card-subtitle">
+                      {classTeacherOf[0]?.name} - {studentsInClass.length} Students
+                    </span>
+                  </div>
+                  <div className="teacher-card-content">
+                    {studentsInClass.length > 0 ? (
+                      <div className="table-container">
+                        <table className="teacher-table">
+                          <thead>
+                            <tr>
+                              <th>Admission No</th>
+                              <th>Student Name</th>
+                              <th>Today's Status</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studentsInClass.map(student => {
+                              const attendanceStatus = getStudentAttendanceStatus(student);
+                              const isLoading = attendanceLoading[student.admission_no];
+                              
+                              return (
+                                <tr key={student.id}>
+                                  <td>{student.admission_no}</td>
+                                  <td>{student.full_name}</td>
+                                  <td>
+                                    <span className={`teacher-status ${attendanceStatus.className}`}>
+                                      {attendanceStatus.status}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <button 
+                                      className="teacher-btn teacher-btn-success"
+                                      onClick={() => markAttendance(student.admission_no, student.full_name)}
+                                      disabled={isLoading}
+                                      style={{ padding: '8px 16px', fontSize: '14px' }}
+                                    >
+                                      {isLoading ? 'Marking...' : 'Mark Attendance'}
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p>No students found in this class.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="teacher-card">
+                  <div className="teacher-card-header">
+                    <h3 className="teacher-card-title">Recent Class Attendance</h3>
+                  </div>
+                  <div className="teacher-card-content">
+                    {classAttendance.length > 0 ? (
+                      <div className="table-container">
+                        <table className="teacher-table">
+                          <thead>
+                            <tr>
+                              <th>Student</th>
+                              <th>Date</th>
+                              <th>Time In</th>
+                              <th>Time Out</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {classAttendance.slice(0, 10).map(att => (
+                              <tr key={att.id}>
+                                <td>{att.student || 'Unknown'}</td>
+                                <td>{new Date(att.date).toLocaleDateString()}</td>
+                                <td>{att.time_in ? new Date(`2000-01-01T${att.time_in}`).toLocaleTimeString() : 'N/A'}</td>
+                                <td>{att.time_out ? new Date(`2000-01-01T${att.time_out}`).toLocaleTimeString() : 'N/A'}</td>
+                                <td>
+                                  <span className={`teacher-status ${att.time_out ? 'present' : 'late'}`}>
+                                    {att.time_out ? 'Present' : 'Checked In'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p>No recent attendance records found.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="teacher-alert info">
+                You are not assigned as a class teacher. Contact the administrator for class teacher assignments.
+              </div>
+            )}
+          </div>
+
+          {/* Marks Upload Section */}
+          <div id="marks-section" className="teacher-section">
+            <h2>Upload Student Marks</h2>
+            
+            <div className="teacher-form-group">
+              <label>Select Exam:</label>
+              <select 
+                value={selectedExam} 
+                onChange={(e) => setSelectedExam(e.target.value)}
+                disabled={uploading}
+              >
+                <option value="">Choose an exam...</option>
+                {exams.map(exam => (
+                  <option key={exam.id} value={exam.id}>
+                    {exam.name} - {exam.subject_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="teacher-form-group">
+              <label>Select Class:</label>
+              <select 
+                value={selectedClass} 
+                onChange={(e) => setSelectedClass(e.target.value)}
+                disabled={uploading}
+              >
+                <option value="">Choose a class...</option>
+                {teacherAssignments.length > 0 ? (
+                  teacherAssignments.map(assignment => {
+                    const classInfo = classes.find(c => c.id === parseInt(assignment.classroom) || c.id === assignment.classroom);
+                    const className = assignment.classroom_name || (classInfo ? classInfo.name : `Class ${assignment.classroom}`);
+                    return (
+                      <option key={assignment.id} value={assignment.classroom}>
+                        {className}
+                      </option>
+                    );
+                  })
+                ) : (
+                  <option value="" disabled>No classes assigned to you</option>
+                )}
+              </select>
+            </div>
+
+            {selectedExam && selectedClass && (
+              <div className="teacher-file-upload" onClick={() => fileInputRef.current?.click()}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvUpload}
+                  style={{ display: 'none' }}
+                />
+                <div className="teacher-file-upload-label">
+                  Click to upload CSV file
+                </div>
+                <div className="teacher-file-upload-text">
+                  Download template first to ensure correct format
+                </div>
+              </div>
+            )}
+
+            <div className="teacher-form-group">
+              <button 
+                className="teacher-btn teacher-btn-secondary" 
+                onClick={handleDownloadTemplate}
+                disabled={!selectedExam || !selectedClass || uploading}
+              >
+                Download CSV Template
+              </button>
+            </div>
+
+            {csvStatus && (
+              <div className={`teacher-alert ${csvStatus.includes('success') ? 'success' : 'error'}`}>
+                {csvStatus}
+              </div>
+            )}
+
+            {csvErrors.length > 0 && (
+              <div className="teacher-alert error">
+                <strong>Upload Errors:</strong>
+                <ul>
+                  {csvErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {uploading && (
+              <div className="teacher-loading">
+                Uploading marks...
+              </div>
+            )}
+
+            {uploadError && (
+              <div className="teacher-alert error">
+                {uploadError}
+              </div>
+            )}
+          </div>
+
+          {/* Assignments Section */}
+          <div id="assignments-section" className="teacher-section">
+            <h2>My Assignments</h2>
+            {teacherAssignments.length > 0 ? (
+              <div className="teacher-grid">
+                {teacherAssignments.map(assignment => {
+                  const classInfo = classes.find(c => c.id === assignment.classroom);
+                  const subjectInfo = subjects.find(s => s.id === assignment.subject);
+                  return (
+                    <div key={assignment.id} className="teacher-card">
+                      <div className="teacher-card-header">
+                        <h3 className="teacher-card-title">
+                          {classInfo ? classInfo.name : `Class ${assignment.classroom}`}
+                        </h3>
+                      </div>
+                      <div className="teacher-card-content">
+                        <p><strong>Subject:</strong> {subjectInfo ? subjectInfo.name : `Subject ${assignment.subject}`}</p>
+                        <p><strong>Assignment ID:</strong> {assignment.id}</p>
+                        {classInfo && classInfo.class_teacher && classInfo.class_teacher.id === teacherId && (
+                          <p><strong>Role:</strong> Class Teacher</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="teacher-alert info">
+                No assignments found. Contact the administrator to get assigned to classes and subjects.
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

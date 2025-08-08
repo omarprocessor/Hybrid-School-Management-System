@@ -1,37 +1,50 @@
 import React from 'react'
 import Header from './Header'
-
+import Footer from './Footer'
+import StatsSection from './StatsSection'
 
 const Home = () => {
-return (
-<>
-<Header />
-<section className="hero">
-  <h1>Welcome to Hybrid School</h1>
-  <p>Empowering students for a brighter future in Timbora Street.</p>
-  <button>Explore Our School</button>
-</section>
+  return (
+    <div className="page-container">
+      <Header />
+      
+      <div className="page-content">
+        {/* Hero Section */}
+        <section className="hero">
+          <h1>Welcome to Hybrid School Management System</h1>
+          <p>Inspiring Success, Shaping the Future through Digital Excellence.</p>
+        </section>
 
-<section className="features">
-  <div>
-    <h3>🎯 Our Mission</h3>
-    <p>To provide quality education and foster holistic development for every learner.</p>
-  </div>
-  <div>
-    <h3>👁️ Our Vision</h3>
-    <p>To be a leading center of academic excellence and innovation in the region.</p>
-  </div>
-  <div>
-    <h3>💡 Our Motto</h3>
-    <p>Inspiring Success, Shaping the Future.</p>
-  </div>
-</section>
+        {/* Services Section */}
+        <section className="services">
+          <h2>What We Offer</h2>
+          <div className="services-grid">
+            <div className="service-card">
+              <h3>📚 Student Management</h3>
+              <p>Comprehensive student records, attendance tracking, and performance monitoring.</p>
+            </div>
+            <div className="service-card">
+              <h3>👨‍🏫 Teacher Portal</h3>
+              <p>Grade management, lesson planning, and communication tools for educators.</p>
+            </div>
+            <div className="service-card">
+              <h3>📊 Admin Dashboard</h3>
+              <p>School-wide analytics, user management, and administrative controls.</p>
+            </div>
+            <div className="service-card">
+              <h3>📱 Mobile Access</h3>
+              <p>Access your school information anytime, anywhere with our responsive platform.</p>
+            </div>
+          </div>
+        </section>
 
-<footer className="footer">
-  © 2025 Hybrid School. All rights reserved.
-</footer>
-</>
-)
+        {/* Stats Section */}
+        <StatsSection />
+      </div>
+
+      <Footer />
+    </div>
+  )
 }
 
 export default Home

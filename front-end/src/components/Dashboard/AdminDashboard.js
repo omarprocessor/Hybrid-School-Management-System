@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../AuthContext';
 import AdminStudents from './AdminStudents';
 import AdminUserApprovals from './AdminUserApprovals';
 import AdminTeachers from './AdminTeachers';
@@ -9,6 +11,8 @@ import AdminSubjects from './AdminSubjects';
 import AdminBlog from './AdminBlog';
 import AdminTeacherSubjectClass from './AdminTeacherSubjectClass';
 import AdminMarks from './AdminMarks';
+import AdminSchoolInfo from './AdminSchoolInfo';
+import './AdminDashboard.css';
 
 const sections = [
   { key: 'students', label: 'Students' },
@@ -21,15 +25,25 @@ const sections = [
   { key: 'assignments', label: 'Assignments' },
   { key: 'approvals', label: 'User Approvals' },
   { key: 'blog', label: 'Blog' },
+  { key: 'school-info', label: 'School Info' },
 ];
 
 const AdminDashboard = () => {
   const [section, setSection] = useState('students');
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    // Since this component is wrapped in ProtectedRoute, user should always exist
+    if (!user || !user.is_superuser) {
+      navigate('/login');
+      return;
+    }
+  }, [user, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    window.location.href = '/';
+    logout();
+    navigate('/');
   };
 
   return (
@@ -61,6 +75,7 @@ const AdminDashboard = () => {
         {section === 'assignments' && <AdminTeacherSubjectClass />}
         {section === 'approvals' && <AdminUserApprovals />}
         {section === 'blog' && <AdminBlog />}
+        {section === 'school-info' && <AdminSchoolInfo />}
         {/* Render other management components here */}
       </main>
     </div>

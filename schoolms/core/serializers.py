@@ -2,7 +2,7 @@ from rest_framework import serializers
 from datetime import date
 from django.utils import timezone
 from django.contrib.auth.models import User
-from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile, BlogPost
+from .models import ClassRoom, Subject, Student, Teacher, TeacherSubjectClass, Exam, Mark, Attendance, UserProfile, BlogPost, SchoolInfo
 import africastalking
 from django.conf import settings
 
@@ -12,6 +12,14 @@ africastalking.initialize(
     api_key=settings.AFRICASTALKING_API_KEY
 )
 sms = africastalking.SMS
+
+class SchoolInfoSerializer(serializers.ModelSerializer):
+    logo = serializers.ImageField(required=False, allow_null=True)
+    
+    class Meta:
+        model = SchoolInfo
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
 
 class TeacherSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
@@ -53,6 +61,9 @@ class TeacherSubjectClassSerializer(serializers.ModelSerializer):
     teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
     classroom = serializers.PrimaryKeyRelatedField(queryset=ClassRoom.objects.all())
+    teacher_name = serializers.CharField(source='teacher.full_name', read_only=True)
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
+    classroom_name = serializers.CharField(source='classroom.name', read_only=True)
 
     class Meta:
         model = TeacherSubjectClass
@@ -152,14 +163,23 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         requested_role = validated_data.pop('requested_role', None)
         gender = validated_data.pop('gender', None)
-        # Remove student creation logic here
-        # Previously, a Student record was created here if requested_role == 'student'.
+        full_name = validated_data.pop('full_name', None)
+        
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password']
         )
         UserProfile.objects.create(user=user, requested_role=requested_role)
+        
+        # Create Teacher record if registering as teacher
+        if requested_role == 'teacher':
+            from .models import Teacher
+            Teacher.objects.create(
+                user=user,
+                full_name=full_name or user.username
+            )
+        
         return user
 
 class UserProfileApprovalSerializer(serializers.ModelSerializer):

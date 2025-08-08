@@ -131,32 +131,38 @@ const AdminTeachers = () => {
           </div>
         </form>
       </div>
-      <div className="admin-students-card">
-        {loading ? <div className="admin-students-loading">Loading...</div> : (
-          <table className="admin-students-table">
-            <thead>
-              <tr>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Gender</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(teachers) ? teachers.map(teacher => (
-                <tr key={teacher.id}>
-                  <td>{teacher.full_name}</td>
-                  <td>{teacher.email}</td>
-                  <td>{teacher.gender}</td>
-                  <td>
-                    <button onClick={() => handleEdit(teacher)}>Edit</button>
-                    <button onClick={() => handleDelete(teacher.id)} style={{ marginLeft: 8, color: 'red' }}>Delete</button>
-                  </td>
+      
+      <div className="responsive-table-wrapper">
+        <div className="table-header">
+          Teachers List
+        </div>
+        <div className="table-container">
+          {loading ? <div className="table-loading">Loading...</div> : (
+            <table className="admin-students-table">
+              <thead>
+                <tr>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Gender</th>
+                  <th>Actions</th>
                 </tr>
-              )) : null}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {Array.isArray(teachers) ? teachers.map(teacher => (
+                  <tr key={teacher.id}>
+                    <td>{teacher.full_name}</td>
+                    <td>{teacher.email}</td>
+                    <td>{teacher.gender}</td>
+                    <td>
+                      <button onClick={() => handleEdit(teacher)}>Edit</button>
+                      <button onClick={() => handleDelete(teacher.id)} style={{ marginLeft: 8, color: 'red' }}>Delete</button>
+                    </td>
+                  </tr>
+                )) : null}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

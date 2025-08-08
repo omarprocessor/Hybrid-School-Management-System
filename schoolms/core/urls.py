@@ -7,6 +7,9 @@ urlpatterns = [
     # JWT Auth
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # SchoolInfo
+    path('school-info/', views.SchoolInfoView.as_view(), name='school-info'),
+    path('school-logo-test/', views.SchoolLogoTestView.as_view(), name='school-logo-test'),
     # ClassRoom
     path('classrooms/', views.ClassRoomListCreateView.as_view(), name='classroom-list'),
     path('classrooms/<int:id>/', views.ClassRoomDetailView.as_view(), name='classroom-detail'),
@@ -42,11 +45,14 @@ urlpatterns = [
     path('my-student/', views.MyStudentView.as_view(), name='my-student'),
     path('my-marks/', views.MyStudentMarksView.as_view(), name='my-marks'),
     path('my-attendance/', views.MyStudentAttendanceView.as_view(), name='my-attendance'),
+    path('my-result-pdf/', views.StudentResultPDFView.as_view(), name='my-result-pdf'),
     path('users/', views.UserListView.as_view(), name='user-list'),
     path('my-class-attendance/', views.MyClassAttendanceView.as_view(), name='my-class-attendance'),
     # Blog
     path('blog/', views.BlogPostListCreateView.as_view(), name='blog-list'),
     path('blog/<slug:slug>/', views.BlogPostDetailView.as_view(), name='blog-detail'),
+    # Stats
+    path('stats/', views.StatsView.as_view(), name='stats'),
 ]
 
 

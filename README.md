@@ -26,6 +26,7 @@ A full-featured school management platform with both **public-facing pages** and
   - CRUD for classes, subjects, assignments
 - **Exam & Marks Management:**
   - Exam creation, CSV upload/download for marks, result notifications
+  - **PDF Result Generation:** Students can download their academic results as PDF with profile picture, marks table, grades, and exam details
 - **Attendance Management:**
   - Mark/check attendance, view logs, class teacher features
 - **Blog System:**
@@ -47,11 +48,15 @@ A full-featured school management platform with both **public-facing pages** and
 - React JS
 - CSS
 - Axios
+- jsPDF (for PDF generation)
+- jsPDF-AutoTable (for PDF tables)
 
 **Backend:**
 - Django Rest Framework (DRF)
 - PostgreSQL
 - JWT Authentication (SimpleJWT)
+- ReportLab (for PDF generation)
+- Pillow (for image processing)
 
 **Hardware & Integration:**
 - UART-based fingerprint module
@@ -108,6 +113,7 @@ All endpoints are prefixed with `/api/` (if using the default Django setup). Aut
 | `/my-student/` | GET | Get current student's profile |
 | `/my-marks/` | GET | Get current student's marks |
 | `/my-attendance/` | GET | Get current student's attendance |
+| `/my-result-pdf/` | GET | Get current student's results data for PDF generation |
 | `/my-class-attendance/` | GET | Get class attendance for class teacher |
 | `/blog/` | GET, POST | List or create blog posts |
 | `/blog/<slug:slug>/` | GET, PUT, DELETE | Retrieve, update, or delete a blog post |

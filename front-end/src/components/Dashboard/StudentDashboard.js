@@ -23,8 +23,13 @@ const StudentDashboard = () => {
   const [exams, setExams] = useState([])
   const [error, setError] = useState('')
 
-useEffect(() => {
-    if (!user) return;
+  useEffect(() => {
+    // Since this component is wrapped in ProtectedRoute, user should always exist
+    if (!user || user.role !== 'student') {
+      navigate('/login');
+      return;
+    }
+
     authFetch(`${API}/my-student/`)
       .then(res => res.ok ? res.json() : null)
       .then(data => setProfile(data))
@@ -49,7 +54,7 @@ useEffect(() => {
       .then(res => res.ok ? res.json() : [])
       .then(data => setClassrooms(data))
       .catch(() => setClassrooms([]));
-  }, [user]);
+  }, [user, navigate]);
 
   const getSubjectName = id => {
     const subj = subjects.find(s => s.id === id)
@@ -72,13 +77,13 @@ useEffect(() => {
   if (error) return <div className="student-dashboard-error">{error}</div>
   if (!profile) return <div className="student-dashboard-loading">Loading...</div>
 
-return (
+  return (
     <DashboardLayout student={true} onLogout={handleLogout}>
       <div className="student-dashboard-main-content">
         <Outlet context={{ profile, classrooms, marks, attendance, subjects, exams, getClassName }} />
       </div>
     </DashboardLayout>
-)
+  )
 }
 
 export default StudentDashboard

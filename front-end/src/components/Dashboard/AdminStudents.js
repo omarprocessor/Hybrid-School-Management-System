@@ -130,35 +130,43 @@ const AdminStudents = () => {
         </form>
         {error && <div className="admin-students-error">{error}</div>}
       </div>
-      <table className="admin-students-table">
-        <thead>
-          <tr>
-            <th>Profile Pic</th>
-            <th>Full Name</th>
-            <th>Admission No</th>
-            <th>Gender</th>
-            <th>Classroom</th>
-            <th>Parent Phone</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map(s => (
-            <tr key={s.id}>
-              <td><img src={s.profile_pic || '/default-avatar.png'} alt="Profile" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} /></td>
-              <td>{s.full_name}</td>
-              <td>{s.admission_no}</td>
-              <td>{s.gender}</td>
-              <td>{getClassName(s.classroom)}</td>
-              <td>{s.parent_phone}</td>
-              <td>
-                <button onClick={() => handleEdit(s)}>Edit</button>
-                <button onClick={() => handleDelete(s.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      
+      <div className="responsive-table-wrapper">
+        <div className="table-header">
+          Students List
+        </div>
+        <div className="table-container">
+          <table className="admin-students-table">
+            <thead>
+              <tr>
+                <th>Profile Pic</th>
+                <th>Full Name</th>
+                <th>Admission No</th>
+                <th>Gender</th>
+                <th>Classroom</th>
+                <th>Parent Phone</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map(s => (
+                <tr key={s.id}>
+                  <td><img src={s.profile_pic || '/default-avatar.png'} alt="Profile" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} /></td>
+                  <td>{s.full_name}</td>
+                  <td>{s.admission_no}</td>
+                  <td>{s.gender}</td>
+                  <td>{getClassName(s.classroom)}</td>
+                  <td>{s.parent_phone}</td>
+                  <td>
+                    <button onClick={() => handleEdit(s)}>Edit</button>
+                    <button onClick={() => handleDelete(s.id)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };

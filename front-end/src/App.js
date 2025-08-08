@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './components/Home';
 import About from './components/About';
 import Contact from './components/Contact';
@@ -26,10 +27,26 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard/students" element={<StudentDashboard />} />
-          <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard/teachers" element={<TeacherDashboard />} />
-          <Route path="/dashboard/students/*" element={<StudentDashboard />}>
+          <Route path="/dashboard/students" element={
+            <ProtectedRoute requiredRole="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/admin" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/teachers" element={
+            <ProtectedRoute requiredRole="teacher">
+              <TeacherDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/students/*" element={
+            <ProtectedRoute requiredRole="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }>
             <Route path="profile" element={<StudentProfile />} />
             <Route path="marks" element={<StudentMarks />} />
             <Route path="attendance" element={<StudentAttendance />} />

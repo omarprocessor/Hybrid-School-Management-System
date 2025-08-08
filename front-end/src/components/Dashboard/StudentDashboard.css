@@ -193,42 +193,861 @@
   padding: 24px 20px 20px 20px;
   box-shadow: 0 2px 12px rgba(44, 62, 80, 0.07);
   overflow-x: auto;
-  max-height: 600px;
-  overflow-y: auto;
+  max-width: 100%;
 }
 
 .student-marks-table {
-  width: 100%;
   border-collapse: collapse;
   background: transparent;
-  min-width: 700px;
   table-layout: auto;
-  overflow-x: auto;
-  display: block;
-  max-height: 450px;
-  overflow-y: auto;
+  font-size: 0.9rem;
+  min-width: 1200px;
+  width: auto;
 }
 
 .student-marks-table th,
 .student-marks-table td {
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-bottom: 1px solid #e6eaf0;
-  font-size: 0.98rem;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
   white-space: nowrap;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-@media (max-width: 900px) {
+.student-marks-table th {
+  background: #e8eaf6;
+  color: #3F51B5;
+  font-weight: 600;
+  font-size: 0.85rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  padding: 8px 12px;
+}
+
+.student-marks-table td {
+  color: #2d3a4b;
+  font-size: 0.85rem;
+}
+
+/* Specific column widths for better layout */
+.student-marks-table th:first-child,
+.student-marks-table td:first-child {
+  width: auto;
+  text-align: left;
+  padding-left: 12px;
+  min-width: 150px;
+}
+
+.student-marks-table th:not(:first-child):not(:last-child),
+.student-marks-table td:not(:first-child):not(:last-child) {
+  width: auto;
+  min-width: 100px;
+}
+
+.student-marks-table th:last-child,
+.student-marks-table td:last-child {
+  width: auto;
+  min-width: 120px;
+}
+
+/* Make exam names more readable */
+.student-marks-table td:first-child {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+/* Improve PDF button layout */
+.exam-pdf-download-btn {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 50px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.exam-pdf-download-btn:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  box-shadow: 0 3px 8px rgba(33, 150, 243, 0.4);
+  transform: translateY(-1px);
+}
+
+.exam-pdf-download-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.exam-pdf-download-btn:disabled:hover {
+  background: #cccccc;
+  transform: none;
+  box-shadow: none;
+}
+
+.exam-pdf-error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 3px;
+  font-size: 10px;
+  border-left: 2px solid #c62828;
+  max-width: 150px;
+  word-wrap: break-word;
+  line-height: 1.2;
+}
+
+/* PDF Download Button Styles */
+.student-marks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.pdf-download-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdf-download-btn:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
+}
+
+.pdf-download-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.pdf-download-btn:disabled:hover {
+  background: #cccccc;
+  transform: none;
+  box-shadow: none;
+}
+
+.pdf-error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Update table styles for actions column */
+.student-marks-table th:last-child,
+.student-marks-table td:last-child {
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Override App.css styles for student marks table */
+.student-marks-section .student-marks-table {
+  min-width: 800px !important;
+  max-width: none !important;
+  width: auto !important;
+  table-layout: auto !important;
+  font-size: 0.9rem !important;
+  overflow-x: visible !important;
+  display: table !important;
+}
+
+.student-marks-section .student-marks-table th,
+.student-marks-section .student-marks-table td {
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+  max-width: none !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+/* Ensure headers don't wrap */
+.student-marks-section .student-marks-table th {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+/* Ensure the table container doesn't force horizontal scroll */
+.student-marks-section {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Responsive overrides for different screen sizes */
+@media (max-width: 991px) {
+  .student-marks-section .student-marks-table {
+    min-width: 1000px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .student-marks-table-wrapper table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 767px) {
+  .student-marks-section .student-marks-table {
+    min-width: 800px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .student-marks-table-wrapper table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 575px) {
+  .student-marks-section .student-marks-table {
+    min-width: 600px !important;
+    font-size: 0.65rem !important;
+  }
+  
+  .student-marks-table-wrapper table {
+    min-width: 600px;
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Large Desktop (1200px and up) */
+@media (min-width: 1200px) {
   .student-dashboard-container {
-    padding: 16px 4px 24px 4px;
-    max-width: 100vw;
+    max-width: 1100px;
+    margin: 50px auto;
+    padding: 40px 30px 50px 30px;
   }
-  .student-marks-section {
-    padding: 16px 4px 16px 4px;
+  
+  .student-dashboard-title {
+    font-size: 2.5rem;
   }
+  
+  .student-dashboard-main-content {
+    padding: 50px;
+  }
+}
+
+/* Desktop (992px to 1199px) */
+@media (max-width: 1199px) {
+  .student-dashboard-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 28px 20px 35px 20px;
+  }
+  
+  .student-dashboard-title {
+    font-size: 2rem;
+  }
+  
+  .student-dashboard-main-content {
+    padding: 35px;
+  }
+}
+
+/* Tablet (768px to 991px) */
+@media (max-width: 991px) {
+  .student-sidebar {
+    width: 200px;
+    padding: 25px 15px;
+  }
+  
+  .student-sidebar .sidebar-title {
+    font-size: 20px;
+    margin-bottom: 25px;
+  }
+  
+  .student-sidebar a {
+    font-size: 15px;
+  }
+  
+  .student-dashboard-main-content {
+    padding: 25px;
+  }
+  
+  .student-dashboard-container {
+    margin: 20px;
+    padding: 20px 15px 25px 15px;
+    border-radius: 20px;
+  }
+  
+  .student-dashboard-title {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+  }
+  
+  .student-profile-section,
+  .student-marks-section,
+  .student-attendance-section {
+    margin-bottom: 25px;
+    padding: 20px 15px 15px 15px;
+    border-radius: 12px;
+  }
+  
+  .student-profile-section h2,
+  .student-marks-section h2,
+  .student-attendance-section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  
+  .student-profile-table th,
+  .student-profile-table td {
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+  
+  .student-profile-table th {
+    width: 140px;
+  }
+  
+  .student-marks-table th,
+  .student-marks-table td,
+  .student-attendance-table th,
+  .student-attendance-table td {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  
   .student-marks-table {
-    min-width: 500px;
+    font-size: 0.8rem;
+    table-layout: fixed;
+    min-width: auto;
+    max-height: 400px;
+  }
+  
+  .student-logout-btn {
+    top: 25px;
+    right: 30px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+  }
+  
+  .student-sidebar .student-logout-btn {
+    padding: 8px 0;
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile (576px to 767px) */
+@media (max-width: 767px) {
+  /* Hide sidebar on mobile and show as overlay */
+  .student-sidebar {
+    position: fixed;
+    top: 0;
+    left: -220px;
+    width: 220px;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    padding: 30px 20px;
+  }
+  
+  .student-sidebar.open {
+    left: 0;
+  }
+  
+  .student-sidebar .sidebar-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  
+  .student-sidebar a {
+    font-size: 14px;
+    padding: 10px 0;
+  }
+  
+  .student-dashboard-main-content {
+    padding: 15px;
+    margin-left: 0;
+  }
+  
+  .student-dashboard-container {
+    margin: 10px;
+    padding: 15px 10px 20px 10px;
+    border-radius: 16px;
+  }
+  
+  .student-dashboard-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .student-profile-section,
+  .student-marks-section,
+  .student-attendance-section {
+    margin-bottom: 20px;
+    padding: 15px 10px 10px 10px;
+    border-radius: 10px;
+  }
+  
+  .student-profile-section h2,
+  .student-marks-section h2,
+  .student-attendance-section h2 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+  
+  .student-profile-table {
+    font-size: 0.85rem;
+  }
+  
+  .student-profile-table th,
+  .student-profile-table td {
+    padding: 6px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .student-profile-table th {
+    width: 100px;
+  }
+  
+  .student-marks-table {
+    font-size: 0.75rem;
+    table-layout: fixed;
+    min-width: auto;
+    max-height: 350px;
+  }
+  
+  .student-marks-table th,
+  .student-marks-table td {
+    padding: 4px 3px;
+    font-size: 0.75rem;
+  }
+  
+  .student-marks-table th {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .student-marks-table th:first-child,
+  .student-marks-table td:first-child {
+    width: 30%;
+    font-size: 0.7rem;
+    min-width: 100px;
+  }
+  
+  .student-marks-table th:not(:first-child):not(:last-child),
+  .student-marks-table td:not(:first-child):not(:last-child) {
+    width: 8%;
+    min-width: 60px;
+  }
+  
+  .student-marks-table th:last-child,
+  .student-marks-table td:last-child {
+    width: 12%;
+    min-width: 80px;
+  }
+  
+  .student-marks-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .pdf-download-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .exam-pdf-download-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-width: 50px;
+  }
+  
+  .exam-pdf-error {
+    font-size: 10px;
+    max-width: 150px;
+  }
+  
+  .student-logout-btn {
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .student-sidebar .student-logout-btn {
+    padding: 6px 0;
+    font-size: 0.8rem;
+  }
+  
+  /* Mobile menu toggle button */
+  .mobile-menu-toggle {
+    display: block;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #3F51B5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1001;
+  }
+  
+  /* Overlay for mobile menu */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+  
+  .sidebar-overlay.open {
+    display: block;
+  }
+}
+
+/* Small Mobile (up to 575px) */
+@media (max-width: 575px) {
+  .student-sidebar {
+    width: 200px;
+    left: -200px;
+    padding: 25px 15px;
+  }
+  
+  .student-sidebar .sidebar-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  .student-sidebar a {
+    font-size: 13px;
+    padding: 8px 0;
+  }
+  
+  .student-dashboard-main-content {
+    padding: 10px;
+  }
+  
+  .student-dashboard-container {
+    margin: 5px;
+    padding: 12px 8px 15px 8px;
+    border-radius: 12px;
+  }
+  
+  .student-dashboard-title {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+  }
+  
+  .student-profile-section,
+  .student-marks-section,
+  .student-attendance-section {
+    margin-bottom: 15px;
+    padding: 12px 8px 8px 8px;
+    border-radius: 8px;
+  }
+  
+  .student-profile-section h2,
+  .student-marks-section h2,
+  .student-attendance-section h2 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .student-profile-table {
+    font-size: 0.75rem;
+  }
+  
+  .student-profile-table th,
+  .student-profile-table td {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .student-profile-table th {
+    width: 80px;
+  }
+  
+  .student-marks-table {
+    font-size: 0.65rem;
+    table-layout: fixed;
+    min-width: auto;
+    max-height: 250px;
+  }
+  
+  .student-marks-table th,
+  .student-marks-table td {
+    padding: 3px 2px;
+    font-size: 0.65rem;
+  }
+  
+  .student-marks-table th {
+    font-size: 0.6rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .student-marks-table th:first-child,
+  .student-marks-table td:first-child {
+    width: 35%;
+    font-size: 0.6rem;
+    min-width: 80px;
+  }
+  
+  .student-marks-table th:not(:first-child):not(:last-child),
+  .student-marks-table td:not(:first-child):not(:last-child) {
+    width: 7%;
+    min-width: 45px;
+  }
+  
+  .student-marks-table th:last-child,
+  .student-marks-table td:last-child {
+    width: 10%;
+    min-width: 70px;
+  }
+  
+  .student-marks-header {
+    gap: 8px;
+  }
+  
+  .pdf-download-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .exam-pdf-download-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+    min-width: 45px;
+  }
+  
+  .exam-pdf-error {
+    font-size: 9px;
+    max-width: 120px;
+  }
+  
+  .student-logout-btn {
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .student-sidebar .student-logout-btn {
+    padding: 5px 0;
+    font-size: 0.75rem;
+  }
+  
+  .mobile-menu-toggle {
+    top: 10px;
+    left: 10px;
+    padding: 6px 10px;
+    font-size: 16px;
+  }
+  
+  .student-dashboard-error {
+    margin: 20px 10px;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .student-dashboard-loading {
+    margin: 20px 10px;
+    padding: 12px;
+    font-size: 1rem;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .student-dashboard-container {
+    margin: 10px;
+    padding: 15px 10px 20px 10px;
+  }
+  
+  .student-dashboard-title {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+  }
+  
+  .student-profile-section,
+  .student-marks-section,
+  .student-attendance-section {
+    margin-bottom: 15px;
+    padding: 12px 10px 8px 10px;
+  }
+  
+  .student-marks-table {
+    max-height: 250px;
+  }
+  
+  .student-sidebar {
+    padding: 20px 15px;
+  }
+  
+  .student-sidebar .sidebar-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .student-sidebar,
+  .mobile-menu-toggle,
+  .sidebar-overlay,
+  .student-logout-btn {
+    display: none !important;
+  }
+  
+  .student-dashboard-main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .student-dashboard-container {
+    margin: 0 !important;
+    padding: 20px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .student-profile-section,
+  .student-marks-section,
+  .student-attendance-section {
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .student-marks-table {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  .pdf-download-btn,
+  .exam-pdf-download-btn {
+    display: none !important;
+  }
+} 
+
+/* Table wrapper for better responsive behavior */
+.student-marks-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  min-width: 0;
+  border: 2px solid #e0e0e0;
+}
+
+.student-marks-table-wrapper table {
+  margin: 0;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.student-marks-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.student-marks-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.student-marks-table-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.student-marks-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+} 
+
+/* Ensure horizontal scrolling works on all devices */
+.student-marks-section {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.student-marks-table-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* Force scrollbar to always be visible on desktop */
+@media (min-width: 768px) {
+  .student-marks-table-wrapper {
+    overflow-x: scroll;
+  }
+  
+  .student-marks-table-wrapper::-webkit-scrollbar {
+    height: 12px;
+    background-color: #f1f1f1;
+  }
+  
+  .student-marks-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+  }
+  
+  .student-marks-table-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 6px;
+    border: 2px solid #f1f1f1;
+  }
+  
+  .student-marks-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
 } 

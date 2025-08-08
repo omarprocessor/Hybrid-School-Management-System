@@ -2,6 +2,29 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 
+class SchoolInfo(models.Model):
+    school_name = models.CharField(max_length=200, default="SCHOOL MANAGEMENT SYSTEM")
+    po_box = models.CharField(max_length=50, default="P.O. Box: 12345 - 00100")
+    phone = models.CharField(max_length=50, default="TEL: 020-1234567 / 0720-123456")
+    location = models.CharField(max_length=100, default="NAIROBI")
+    email = models.EmailField(default="info@schoolms.com")
+    logo = models.ImageField(upload_to='school_logos/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "School Information"
+        verbose_name_plural = "School Information"
+
+    def __str__(self):
+        return self.school_name
+
+    def save(self, *args, **kwargs):
+        # Ensure only one school info record exists
+        if not self.pk and SchoolInfo.objects.exists():
+            return
+        super().save(*args, **kwargs)
+
 class ClassRoom(models.Model):
     name = models.CharField(max_length=20)
     class_teacher = models.OneToOneField('Teacher', on_delete=models.SET_NULL, null=True, blank=True, related_name='classroom_as_teacher')
